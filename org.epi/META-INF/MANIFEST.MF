@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EPI Plugin
+Bundle-SymbolicName: org.epi;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: org.adempiere.base;bundle-version="6.2.0",
+ org.adempiere.plugin.utils;bundle-version="6.2.0",
+ org.adempiere.ui;bundle-version="6.2.0",
+ org.eclipse.osgi.services;bundle-version="3.7.100",
+ org.adempiere.ui.zk;bundle-version="6.2.0",
+ org.idempiere.zk.extra;bundle-version="6.2.0",
+ zk;bundle-version="8.6.0",
+ zul;bundle-version="8.6.0",
+ com.itextpdf;bundle-version="5.5.13",
+ org.apache.poi.poi-ooxml;bundle-version="3.15.0"
+Import-Package: org.apache.tools.ant.types.optional.image,
+ org.osgi.framework;version="1.8.0",
+ org.zkoss.image
+Export-Package: org.epi.component
+Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
+Bundle-ActivationPolicy: lazy
+Service-Component: OSGI-INF/EPIProcessFactory.xml,
+ OSGI-INF/EPIValidatorFactory.xml,
+ OSGI-INF/EPIFormFactory.xml,
+ OSGI-INF/EPIModelFactory.xml,
+ OSGI-INF/EPICallOutFactory.xml,
+ OSGI-INF/EPIDocFactory.xml
+Bundle-Vendor: PT. Integra Solusi Mandiri
+Automatic-Module-Name: org.epi
