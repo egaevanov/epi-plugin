@@ -11,6 +11,7 @@ import org.compiere.model.MInvoice;
 import org.compiere.model.MInvoiceLine;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -18,6 +19,7 @@ import org.compiere.util.Env;
 import org.epi.model.X_C_InvoiceLineDtl;
 import org.epi.model.X_M_InOutLineDtl;
 import org.epi.process.EPICalculateFinalInvoice;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIInvoiceLineValidator {
@@ -28,10 +30,15 @@ public class EPIInvoiceLineValidator {
 		
 		String msgInv= "";
 		MInvoiceLine InvLine = (MInvoiceLine) po;
+		
+		MOrg org = new MOrg(InvLine.getCtx(), InvLine.getAD_Org_ID(), null);
+
+		
 		if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
 			
-			msgInv = beforeSave(InvLine);
-			
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInv = beforeSaveEPI(InvLine);
+			}
 		}
 		
 	return msgInv;
@@ -39,7 +46,7 @@ public class EPIInvoiceLineValidator {
 	}
 	
 	
-	private static String beforeSave(MInvoiceLine InvLine) {
+	private static String beforeSaveEPI(MInvoiceLine InvLine) {
 		
 		String rslt = "";
 		MInvoice Invoice = new MInvoice(null, InvLine.getC_Invoice_ID(), InvLine.get_TrxName());

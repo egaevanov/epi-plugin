@@ -7,37 +7,55 @@ import org.adempiere.base.IColumnCallout;
 import org.compiere.model.CalloutEngine;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
+import org.compiere.model.MOrg;
 import org.compiere.model.MProduct;
 import org.compiere.util.Env;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.X_M_SaveInv;
 import org.epi.process.EPIQtyValidatorGlobalOH;
+import org.epi.utils.FinalVariableGlobal;
 
-public class EPICallOutOrderLineDetail extends CalloutEngine implements IColumnCallout {
+public class CallOutOrderLineDetail extends CalloutEngine implements IColumnCallout {
 
 	@Override
 	public String start(Properties ctx, int WindowNo, GridTab mTab,GridField mField, Object value, Object oldValue) {
 		
-		if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_M_Product_ID)){
-			return ProductChange(ctx, WindowNo, mTab, mField, value);
+	Integer AD_Org_ID = (Integer)mTab.getValue("AD_Org_ID");
 		
-		}else if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse)) {
-			return QtyChange(ctx, WindowNo, mTab, mField, value);
-
-		}else if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_PriceEntered)) {
-			return PriceChange(ctx, WindowNo, mTab, mField, value);
-
-		}else if(mField.getColumnName().equals("M_SaveInv_ID")) {
-			return CoalReceiptInput(ctx, WindowNo, mTab, mField, value);
-
+		if(AD_Org_ID <=0)
+			return"";		
+		
+		
+		MOrg org = new MOrg(Env.getCtx(),AD_Org_ID, null);
+		
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		
+			if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_M_Product_ID)){
+				return ProductChangeEPI(ctx, WindowNo, mTab, mField, value);	
+			}else if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse)) {
+				return QtyChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}else if(mField.getColumnName().equals(I_C_OrderlineDtl.COLUMNNAME_PriceEntered)) {
+				return PriceChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}else if(mField.getColumnName().equals("M_SaveInv_ID")) {
+				return CoalReceiptInputEPI(ctx, WindowNo, mTab, mField, value);
+			}
+			
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+			
+			/*
+			 * TODO
+			 */		
 		}
+		
+		
+		
 		
 		return "";
 	}
 
 	
 	
-	public String ProductChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String ProductChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer M_Product_ID = (Integer)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_M_Product_ID);
 		BigDecimal Qty = (BigDecimal)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse);
@@ -62,7 +80,7 @@ public class EPICallOutOrderLineDetail extends CalloutEngine implements IColumnC
 	}
 	
 	
-	public String QtyChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String QtyChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer M_Product_ID = (Integer)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_M_Product_ID);
 		BigDecimal Qty = (BigDecimal)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse);
@@ -106,7 +124,7 @@ public class EPICallOutOrderLineDetail extends CalloutEngine implements IColumnC
 	}
 
 
-	public String PriceChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String PriceChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 	
 		Integer M_Product_ID = (Integer)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_M_Product_ID);
 		BigDecimal Qty = (BigDecimal)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse);
@@ -130,7 +148,7 @@ public class EPICallOutOrderLineDetail extends CalloutEngine implements IColumnC
 	}
 	
 	
-	public String CoalReceiptInput (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String CoalReceiptInputEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 				
 		Integer M_SaveInv_ID = (Integer)mTab.getValue("M_SaveInv_ID");
 		BigDecimal Qty = (BigDecimal)mTab.getValue(I_C_OrderlineDtl.COLUMNNAME_QtyInternalUse);

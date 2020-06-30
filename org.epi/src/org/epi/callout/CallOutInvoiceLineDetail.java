@@ -7,30 +7,51 @@ import org.adempiere.base.IColumnCallout;
 import org.compiere.model.CalloutEngine;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
+import org.compiere.model.MOrg;
 import org.compiere.model.MProduct;
 import org.compiere.util.Env;
 import org.epi.model.I_C_InvoiceLineDtl;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.X_M_SaveInv;
 import org.epi.process.EPIQtyValidatorGlobalOH;
+import org.epi.utils.FinalVariableGlobal;
 
-public class EPICalloutInvoiceLineDetail extends CalloutEngine implements IColumnCallout {
+public class CallOutInvoiceLineDetail extends CalloutEngine implements IColumnCallout {
 
 	@Override
 	public String start(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value, Object oldValue) {
 		
-		if(mField.getColumnName().equals("M_SaveInv_ID")){
-			return CoalReceiptInput(ctx, WindowNo, mTab, mField, value);
-		}else if(mField.getColumnName().equals("QtyInternalUse"))	{
-			return QtyChange(ctx, WindowNo, mTab, mField, value);
-		}else if(mField.getColumnName().equals("PriceEntered"))	{
-			return PriceChange(ctx, WindowNo, mTab, mField, value);
+		Integer AD_Org_ID = (Integer)mTab.getValue("AD_Org_ID");
+		
+		if(AD_Org_ID <=0)
+			return"";		
+		
+		
+		MOrg org = new MOrg(Env.getCtx(),AD_Org_ID, null);
+
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			
+			if(mField.getColumnName().equals("M_SaveInv_ID")){
+				return CoalReceiptInputEPI(ctx, WindowNo, mTab, mField, value);
+			}else if(mField.getColumnName().equals("QtyInternalUse"))	{
+				return QtyChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}else if(mField.getColumnName().equals("PriceEntered"))	{
+				return PriceChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}
+			
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+			
+			/*
+			 * TODO
+			 */		
 		}
+		
+	
 		
 		return "";
 	}
 
-	public String CoalReceiptInput (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String CoalReceiptInputEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 
 		Integer M_SaveInv_ID = (Integer)mTab.getValue("M_SaveInv_ID");
@@ -74,7 +95,7 @@ public class EPICalloutInvoiceLineDetail extends CalloutEngine implements IColum
 		return"";
 	}
 	
-	public String PriceChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String PriceChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer M_Product_ID = (Integer)mTab.getValue(I_C_InvoiceLineDtl.COLUMNNAME_M_Product_ID);
 		BigDecimal Qty = (BigDecimal)mTab.getValue("QtyInternalUse");
@@ -98,7 +119,7 @@ public class EPICalloutInvoiceLineDetail extends CalloutEngine implements IColum
 	
 	}
 	
-	public String QtyChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+	public String QtyChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer M_Product_ID = (Integer)mTab.getValue(I_C_InvoiceLineDtl.COLUMNNAME_M_Product_ID);
 		BigDecimal Qty = (BigDecimal)mTab.getValue("QtyInternalUse");

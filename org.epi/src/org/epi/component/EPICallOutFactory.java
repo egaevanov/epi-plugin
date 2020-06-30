@@ -9,14 +9,14 @@ import org.compiere.model.I_C_Invoice;
 import org.compiere.model.I_C_OrderLine;
 import org.compiere.model.I_M_InOutLine;
 import org.compiere.model.I_M_RequisitionLine;
-import org.epi.callout.EPICallOutInOutLine;
-import org.epi.callout.EPICallOutInvoice;
-import org.epi.callout.EPICallOutMaterialSave;
-import org.epi.callout.EPICallOutOrderLine;
-import org.epi.callout.EPICallOutOrderLineDetail;
-import org.epi.callout.EPICallOutRequisitionLine;
-import org.epi.callout.EPICalloutInvoiceLineDetail;
-import org.epi.callout.EPICalloutShipmentLineDetail;
+import org.epi.callout.CallOutInOutLine;
+import org.epi.callout.CallOutInvoice;
+import org.epi.callout.CallOutMaterialSave;
+import org.epi.callout.CallOutOrderLine;
+import org.epi.callout.CallOutOrderLineDetail;
+import org.epi.callout.CallOutRequisitionLine;
+import org.epi.callout.CallOutInvoiceLineDetail;
+import org.epi.callout.CallOutShipmentLineDetail;
 import org.epi.model.I_C_InvoiceLineDtl;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.I_M_InOutLineDtl;
@@ -37,21 +37,21 @@ public class EPICallOutFactory implements IColumnCalloutFactory {
 		List<IColumnCallout> list = new ArrayList<IColumnCallout>();
 		
 		if (tableName.equals(I_M_SaveInv.Table_Name)){
-			list.add (new EPICallOutMaterialSave());
+			list.add (new CallOutMaterialSave());
 		}else if (tableName.equals(I_C_OrderlineDtl.Table_Name)){
-			list.add (new EPICallOutOrderLineDetail());
+			list.add (new CallOutOrderLineDetail());
 		}else if (tableName.equals(I_M_InOutLine.Table_Name)){
-			list.add (new EPICallOutInOutLine());
+			list.add (new CallOutInOutLine());
 		}else if(tableName.equals(I_M_InOutLineDtl.Table_Name)){
-			list.add(new EPICalloutShipmentLineDetail());
+			list.add(new CallOutShipmentLineDetail());
 		}else if(tableName.equals(I_C_InvoiceLineDtl.Table_Name)){
-			list.add(new EPICalloutInvoiceLineDetail());
+			list.add(new CallOutInvoiceLineDetail());
 		}else if(tableName.equals(I_M_RequisitionLine.Table_Name)) {
-			list.add(new EPICallOutRequisitionLine());
+			list.add(new CallOutRequisitionLine());
 		}else if(tableName.equals(I_C_OrderLine.Table_Name)) {
-			list.add(new EPICallOutOrderLine());
+			list.add(new CallOutOrderLine());
 		}else if(tableName.equals(I_C_Invoice.Table_Name)) {
-			list.add(new EPICallOutInvoice());
+			list.add(new CallOutInvoice());
 		}
 
 		

@@ -8,21 +8,42 @@ import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
+import org.compiere.model.MOrg;
+import org.compiere.util.Env;
+import org.epi.utils.FinalVariableGlobal;
 
-public class EPICallOutInvoice extends CalloutEngine implements IColumnCallout  {
+public class CallOutInvoice extends CalloutEngine implements IColumnCallout  {
 
 	@Override
 	public String start(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value, Object oldValue) {
 
-		if(mField.getColumnName().equals("C_InvoiceDP_ID")){
-			return InvoiceDPChange(ctx, WindowNo, mTab, mField, value);
+		Integer AD_Org_ID = (Integer)mTab.getValue("AD_Org_ID");
+		
+		if(AD_Org_ID <=0)
+			return"";		
+		
+		
+		MOrg org = new MOrg(Env.getCtx(),AD_Org_ID, null);
+
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+
+			if(mField.getColumnName().equals("C_InvoiceDP_ID")){
+				
+				return InvoiceDPChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}
+		
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+			
+			/*
+			 * TODO
+			 */		
 		}
 		
-		return null;
+		return "";
 	}
 
 	
-public String InvoiceDPChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+public String InvoiceDPChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer C_InvoiveDP_ID = (Integer)mTab.getValue("C_InvoiceDP_ID");
 		

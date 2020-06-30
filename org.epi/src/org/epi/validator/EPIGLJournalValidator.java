@@ -6,10 +6,12 @@ import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MDocType;
 import org.compiere.model.MGLCategory;
 import org.compiere.model.MJournal;
+import org.compiere.model.MOrg;
 import org.compiere.model.MSequence;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIGLJournalValidator {
@@ -21,10 +23,14 @@ public class EPIGLJournalValidator {
 		String msgJournal= "";
 		MJournal journal = (MJournal) po;
 		
+		MOrg org = new MOrg(journal.getCtx(), journal.getAD_Org_ID(), null);
+		
 	if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
 			
-		msgJournal = beforeSave(journal);
-
+		if(org.getValue().equals(FinalVariableGlobal.EPI)) {
+			msgJournal = beforeSaveEPI(journal);
+		}
+	
 	}
 		
 	return msgJournal;
@@ -32,7 +38,7 @@ public class EPIGLJournalValidator {
 	}
 	
 	
-	private static String beforeSave(MJournal journal) {
+	private static String beforeSaveEPI(MJournal journal) {
 
 		
 		String rslt = "";

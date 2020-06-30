@@ -15,8 +15,6 @@ public class EPICalculateFinalInvoice {
 		
 		BigDecimal rs = Env.ZERO;
 		
-	
-		
 		return rs;
 		
 	}
@@ -27,13 +25,7 @@ public class EPICalculateFinalInvoice {
 		Integer rs = 0;
 		
 		StringBuilder getRelationData = new StringBuilder();
-//		getRelationData.append("SELECT SUM(payamt)");
-//		getRelationData.append(" FROM v_ar_vs_so");
-//		getRelationData.append(" WHERE AD_Client_ID = ?");
-//		getRelationData.append(" AND AD_Org_ID = ? ");
-//		getRelationData.append(" AND C_Order_ID = ? ");
-		
-		
+				
 		getRelationData.append("SELECT ci.C_Invoice_ID");
 		getRelationData.append(" FROM C_Invoice ci");
 		getRelationData.append(" LEFT JOIN C_Payment cp ON cp.AD_Client_ID = ci.AD_Client_ID AND cp.C_Invoice_ID = ci.C_Invoice_ID");

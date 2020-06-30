@@ -10,24 +10,41 @@ import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_M_InOutLine;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.MProduct;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.epi.utils.FinalVariableGlobal;
 
-public class EPICallOutInOutLine extends CalloutEngine implements IColumnCallout {
+public class CallOutInOutLine extends CalloutEngine implements IColumnCallout {
 
 	@Override
 	public String start(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value, Object oldValue) {
 		
-		if(mField.getColumnName().equals(I_M_InOutLine.COLUMNNAME_C_OrderLine_ID)){
-			return OrderDataChange(ctx, WindowNo, mTab, mField, value);
-		}	
+		Integer AD_Org_ID = (Integer)mTab.getValue("AD_Org_ID");
 		
+		if(AD_Org_ID <=0)
+			return"";		
+		
+		
+		MOrg org = new MOrg(Env.getCtx(),AD_Org_ID, null);
+
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		
+			if(mField.getColumnName().equals(I_M_InOutLine.COLUMNNAME_C_OrderLine_ID)){
+				return OrderDataChangeEPI(ctx, WindowNo, mTab, mField, value);
+			}	
+		
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {			
+			/*
+			 * TODO
+			 */		
+		}
 		return "";
 	}
 
 	
-public String OrderDataChange (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+public String OrderDataChangeEPI (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
 		
 		Integer C_OrderLine_ID = (Integer)mTab.getValue(I_M_InOutLine.COLUMNNAME_C_OrderLine_ID);
 		

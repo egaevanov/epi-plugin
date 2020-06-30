@@ -15,6 +15,7 @@ import org.compiere.model.MInOutLine;
 import org.compiere.model.MLocator;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.MProduct;
 import org.compiere.model.MStorageOnHand;
 import org.compiere.model.MWarehouse;
@@ -27,6 +28,7 @@ import org.compiere.util.Msg;
 import org.epi.model.X_C_OrderlineDtl;
 import org.epi.model.X_ISM_Budget_Transaction;
 import org.epi.model.X_M_InOutLineDtl;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIOrderValidator {
@@ -37,22 +39,29 @@ public class EPIOrderValidator {
 		
 		String msgOrd= "";
 		MOrder order = (MOrder) po;
+		
+		MOrg org = new MOrg(order.getCtx(), order.getAD_Org_ID(), null);
+
+		
 		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
-			
-			msgOrd = beforeComplete(order);
-			
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgOrd = beforeCompleteEPI(order);
+			}
 		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_CLOSE)) {
-			
-			msgOrd = beforeClose(order);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgOrd = beforeCloseEPI(order);
+			}
 		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)) {
-			msgOrd = beforeClose(order);	
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgOrd = beforeCloseEPI(order);
+			}
 		}
 		
 	return msgOrd;
 
 	}
 
-	private static String beforeComplete(MOrder Ord) {
+	private static String beforeCompleteEPI(MOrder Ord) {
 		
 		String rslt = "";
 	
@@ -205,7 +214,7 @@ public class EPIOrderValidator {
 	
 	
 	
-	private static String beforeClose(MOrder Ord) {
+	private static String beforeCloseEPI(MOrder Ord) {
 		
 		String rslt = "";
 		

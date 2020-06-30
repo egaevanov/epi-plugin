@@ -7,12 +7,14 @@ import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
 import org.compiere.model.MInvoiceLine;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.MSequence;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.epi.model.X_ISM_Budget_Transaction;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIInvoiceValidator {
@@ -23,17 +25,24 @@ public class EPIInvoiceValidator {
 		
 		String msgInv= "";
 		MInvoice Invoice = (MInvoice) po;
+		
+		MOrg org = new MOrg(Invoice.getCtx(), Invoice.getAD_Org_ID(), null);
+
 		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
 			
-			msgInv = beforeComplete(Invoice);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInv = beforeCompleteEPI(Invoice);
+			}
 			
 		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
-			
-			msgInv = beforeReverse(Invoice);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInv = beforeReverseEPI(Invoice);
+			}
 		
 		}else if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
-			
-			msgInv = beforeSave(Invoice);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInv = beforeSaveEPI(Invoice);
+			}
 
 		}
 		
@@ -41,7 +50,7 @@ public class EPIInvoiceValidator {
 
 	}
 
-	private static String beforeComplete(MInvoice Inv) {
+	private static String beforeCompleteEPI(MInvoice Inv) {
 
 		String rslt = "";
 
@@ -98,7 +107,7 @@ public class EPIInvoiceValidator {
 	}
 	
 	
-	private static String beforeReverse(MInvoice Inv) {
+	private static String beforeReverseEPI(MInvoice Inv) {
 
 		String rslt = "";
 		
@@ -149,7 +158,7 @@ public class EPIInvoiceValidator {
 	}
 	
 	
-	private static String beforeSave(MInvoice inv) {
+	private static String beforeSaveEPI(MInvoice inv) {
 
 	
 		String rslt = "";

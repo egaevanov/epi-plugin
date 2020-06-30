@@ -5,11 +5,13 @@ import java.util.Calendar;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MBankAccount;
 import org.compiere.model.MDocType;
+import org.compiere.model.MOrg;
 import org.compiere.model.MPayment;
 import org.compiere.model.MSequence;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIPaymentValidator {
@@ -21,9 +23,15 @@ public class EPIPaymentValidator {
 		
 		String msgPay= "";
 		MPayment pay = (MPayment) po;
+		
+		MOrg org = new MOrg(pay.getCtx(), pay.getAD_Org_ID(), null);
+
+		
 		if (event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {
 			
-			msgPay = beforeSave(pay);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgPay = beforeSaveEPI(pay);
+			}
 			
 		}
 		
@@ -32,7 +40,7 @@ public class EPIPaymentValidator {
 	}
 
 	
-private static String beforeSave(MPayment pay) {
+private static String beforeSaveEPI(MPayment pay) {
 
 	
 		String rslt = "";

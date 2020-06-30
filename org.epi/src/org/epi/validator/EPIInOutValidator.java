@@ -16,6 +16,7 @@ import org.compiere.model.MInventoryLine;
 import org.compiere.model.MLocator;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.MProduct;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
@@ -24,23 +25,32 @@ import org.compiere.util.Env;
 import org.epi.model.X_M_InOutLineDtl;
 import org.epi.process.EPIInOutSupport;
 import org.epi.process.EPIParameterSupport;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIInOutValidator {
 	
 	public static CLogger log = CLogger.getCLogger(EPIInOutValidator.class);
-
+	
 	public static String executeCreateInternalUse(Event event, PO po) {
 		
 		String msgInOut = "";
 		MInOut InOut = (MInOut) po;
+		
+		MOrg org = new MOrg(InOut.getCtx(), InOut.getAD_Org_ID(), null);
+
+		
 		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
 			
-			msgInOut = InOutBeforeComplete(InOut);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInOut = InOutBeforeCompleteEPI(InOut);
+			}
 			
 		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
 			
-			msgInOut = InOutBeforeReverseCorrect(InOut);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgInOut = InOutBeforeReverseCorrectEPI(InOut);
+			}
 			
 		}
 		
@@ -49,7 +59,7 @@ public class EPIInOutValidator {
 	}
 
 	
-	private static String InOutBeforeComplete(MInOut InOut) {
+	private static String InOutBeforeCompleteEPI(MInOut InOut) {
 		String rslt = "";
 		
 		
@@ -227,7 +237,7 @@ public class EPIInOutValidator {
 		
 	}
 	
-	private static String InOutBeforeReverseCorrect(MInOut InOut) {
+	private static String InOutBeforeReverseCorrectEPI(MInOut InOut) {
 		
 		String rslt = "";
 		

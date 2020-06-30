@@ -47,12 +47,14 @@ import org.compiere.model.MInvoiceLine;
 import org.compiere.model.MLandedCostAllocation;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLandedCostAllocation;
+import org.compiere.model.MOrg;
 import org.compiere.model.MTax;
 import org.compiere.model.ProductCost;
 import org.compiere.model.X_M_Cost;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Trx;
+import org.epi.utils.FinalVariableGlobal;
 
 /**
  *  Post Invoice Documents.
@@ -383,192 +385,201 @@ public class EPIDocInvoice extends Doc
 			if(DocType.getDescription().equals("ARIDP")) {
 				
 				
-				//Desc : ARIDP
-				BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
-				BigDecimal serviceAmt = Env.ZERO;
-
-				//  Header Charge           CR
-				BigDecimal amt = getAmount(Doc.AMTTYPE_Charge);
-				if (amt != null && amt.signum() != 0)
-					fact.createLine(null, getAccount(Doc.ACCTTYPE_Charge, as),
-						getC_Currency_ID(), null, amt);
-				//  TaxDue                  CR
-				for (int i = 0; i < m_taxes.length; i++)
-				{
-					amt = m_taxes[i].getAmount();
+				MOrg org = new MOrg(invoice.getCtx(), invoice.getAD_Org_ID(), null);
+				
+				if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				
+					//Desc : ARIDP
+					BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
+					BigDecimal serviceAmt = Env.ZERO;
+	
+					//  Header Charge           CR
+					BigDecimal amt = getAmount(Doc.AMTTYPE_Charge);
 					if (amt != null && amt.signum() != 0)
-					{
-						FactLine tl = fact.createLine(null, m_taxes[i].getAccount(DocTax.ACCTTYPE_TaxDue, as),
+						fact.createLine(null, getAccount(Doc.ACCTTYPE_Charge, as),
 							getC_Currency_ID(), null, amt);
-						if (tl != null)
-							tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
-					}
-				}
-				//  Revenue                 CR
-				for (int i = 0; i < p_lines.length; i++)
-				{
-					amt = p_lines[i].getAmtSource();
-					BigDecimal dAmt = null;
-					if (as.isTradeDiscountPosted())
+					//  TaxDue                  CR
+					for (int i = 0; i < m_taxes.length; i++)
 					{
-						BigDecimal discount = p_lines[i].getDiscount();
-						if (discount != null && discount.signum() != 0)
+						amt = m_taxes[i].getAmount();
+						if (amt != null && amt.signum() != 0)
 						{
-							amt = amt.add(discount);
-							dAmt = discount;
-							fact.createLine (p_lines[i],
-									p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),
-									getC_Currency_ID(), dAmt, null);
+							FactLine tl = fact.createLine(null, m_taxes[i].getAccount(DocTax.ACCTTYPE_TaxDue, as),
+								getC_Currency_ID(), null, amt);
+							if (tl != null)
+								tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
 						}
 					}
-					fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_ISM_DP, as),getC_Currency_ID(), null, amt);
-					
-					if (!p_lines[i].isItem())
+					//  Revenue                 CR
+					for (int i = 0; i < p_lines.length; i++)
 					{
-						grossAmt = grossAmt.subtract(amt);
-						serviceAmt = serviceAmt.add(amt);
+						amt = p_lines[i].getAmtSource();
+						BigDecimal dAmt = null;
+						if (as.isTradeDiscountPosted())
+						{
+							BigDecimal discount = p_lines[i].getDiscount();
+							if (discount != null && discount.signum() != 0)
+							{
+								amt = amt.add(discount);
+								dAmt = discount;
+								fact.createLine (p_lines[i],
+										p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),
+										getC_Currency_ID(), dAmt, null);
+							}
+						}
+						fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_ISM_DP, as),getC_Currency_ID(), null, amt);
+						
+						if (!p_lines[i].isItem())
+						{
+							grossAmt = grossAmt.subtract(amt);
+							serviceAmt = serviceAmt.add(amt);
+						}
 					}
-				}
-
-				//  Receivables     DR
-				int receivables_ID = getValidCombination_ID(Doc.ACCTTYPE_C_Receivable, as);
-				int receivablesServices_ID = getValidCombination_ID (Doc.ACCTTYPE_C_Receivable_Services, as);
-				if (m_allLinesItem || !as.isPostServices()
-					|| receivables_ID == receivablesServices_ID)
-				{
-					grossAmt = getAmount(Doc.AMTTYPE_Gross);
-					serviceAmt = Env.ZERO;
-				}
-				else if (m_allLinesService)
-				{
-					serviceAmt = getAmount(Doc.AMTTYPE_Gross);
-					grossAmt = Env.ZERO;
-				}
-				if (grossAmt.signum() != 0)
-					fact.createLine(null, MAccount.get(getCtx(), receivables_ID),
-						getC_Currency_ID(), grossAmt, null);
-				if (serviceAmt.signum() != 0)
-					fact.createLine(null, MAccount.get(getCtx(), receivablesServices_ID),
-						getC_Currency_ID(), serviceAmt, null);
-
-				//  Set Locations
-				FactLine[] fLines = fact.getLines();
-				for (int i = 0; i < fLines.length; i++)
-				{
-					if (fLines[i] != null)
+	
+					//  Receivables     DR
+					int receivables_ID = getValidCombination_ID(Doc.ACCTTYPE_C_Receivable, as);
+					int receivablesServices_ID = getValidCombination_ID (Doc.ACCTTYPE_C_Receivable_Services, as);
+					if (m_allLinesItem || !as.isPostServices()
+						|| receivables_ID == receivablesServices_ID)
 					{
-						fLines[i].setLocationFromOrg(fLines[i].getAD_Org_ID(), true);      //  from Loc
-						fLines[i].setLocationFromBPartner(getC_BPartner_Location_ID(), false);  //  to Loc
+						grossAmt = getAmount(Doc.AMTTYPE_Gross);
+						serviceAmt = Env.ZERO;
 					}
+					else if (m_allLinesService)
+					{
+						serviceAmt = getAmount(Doc.AMTTYPE_Gross);
+						grossAmt = Env.ZERO;
+					}
+					if (grossAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivables_ID),
+							getC_Currency_ID(), grossAmt, null);
+					if (serviceAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivablesServices_ID),
+							getC_Currency_ID(), serviceAmt, null);
+	
+					//  Set Locations
+					FactLine[] fLines = fact.getLines();
+					for (int i = 0; i < fLines.length; i++)
+					{
+						if (fLines[i] != null)
+						{
+							fLines[i].setLocationFromOrg(fLines[i].getAD_Org_ID(), true);      //  from Loc
+							fLines[i].setLocationFromBPartner(getC_BPartner_Location_ID(), false);  //  to Loc
+						}
+					}
+					//ARIDP
 				}
-				//ARIDP
-				
 				
 			}else if(DocType.getDescription().equals("ARIFINAL")) {
 				
-				//Desc : ARIFINAL
-				BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
-				BigDecimal serviceAmt = Env.ZERO;
+				MOrg org = new MOrg(invoice.getCtx(), invoice.getAD_Org_ID(), null);
 				
-				BigDecimal percent = Env.ZERO;	
-				BigDecimal DPAmt = Env.ZERO;
-				int DPAcct_ID = 0;
-				
-				MInvoice InvDP = null;
-				MOrder ord = null;
-				
-				if(invoice.get_ValueAsInt("C_InvoiceDP_ID") > 0) {
+				if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
 					
-					InvDP = new MInvoice(getCtx(),invoice.get_ValueAsInt("C_InvoiceDP_ID") , null);
-					ord = new MOrder(getCtx(), InvDP.getC_Order_ID(), null);
-					BigDecimal FirstDP = (BigDecimal) InvDP.get_Value("FirstDP");
 
+					//Desc : ARIFINAL
+					BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
+					BigDecimal serviceAmt = Env.ZERO;
 					
-					percent = FirstDP.divide(Env.ONEHUNDRED);
-					DPAmt = percent.multiply(ord.getTotalLines());
+					BigDecimal percent = Env.ZERO;	
+					BigDecimal DPAmt = Env.ZERO;
+					int DPAcct_ID = 0;
 					
-				}				
-
-				//  Header Charge           CR
-				BigDecimal amt = getAmount(Doc.AMTTYPE_Charge);
-				if (amt != null && amt.signum() != 0)
-					fact.createLine(null, getAccount(Doc.ACCTTYPE_Charge, as),getC_Currency_ID(), null, amt);
-				//  TaxDue                  CR
-				for (int i = 0; i < m_taxes.length; i++)
-				{
-					amt = m_taxes[i].getAmount();
+					MInvoice InvDP = null;
+					MOrder ord = null;
+					
+					if(invoice.get_ValueAsInt("C_InvoiceDP_ID") > 0) {
+						
+						InvDP = new MInvoice(getCtx(),invoice.get_ValueAsInt("C_InvoiceDP_ID") , null);
+						ord = new MOrder(getCtx(), InvDP.getC_Order_ID(), null);
+						BigDecimal FirstDP = (BigDecimal) InvDP.get_Value("FirstDP");
+	
+						
+						percent = FirstDP.divide(Env.ONEHUNDRED);
+						DPAmt = percent.multiply(ord.getTotalLines());
+						
+					}				
+	
+					//  Header Charge           CR
+					BigDecimal amt = getAmount(Doc.AMTTYPE_Charge);
 					if (amt != null && amt.signum() != 0)
+						fact.createLine(null, getAccount(Doc.ACCTTYPE_Charge, as),getC_Currency_ID(), null, amt);
+					//  TaxDue                  CR
+					for (int i = 0; i < m_taxes.length; i++)
 					{
-						FactLine tl = fact.createLine(null, m_taxes[i].getAccount(DocTax.ACCTTYPE_TaxDue, as),getC_Currency_ID(), null, amt);
-						if (tl != null)
-							tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
-					}
-				}
-				//  Revenue                 CR
-				for (int i = 0; i < p_lines.length; i++)
-				{
-					amt = p_lines[i].getAmtSource();
-					BigDecimal dAmt = null;
-					if (as.isTradeDiscountPosted())
-					{
-						BigDecimal discount = p_lines[i].getDiscount();
-						if (discount != null && discount.signum() != 0)
+						amt = m_taxes[i].getAmount();
+						if (amt != null && amt.signum() != 0)
 						{
-							amt = amt.add(discount);
-							dAmt = discount;
-							fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),getC_Currency_ID(), dAmt, null);
+							FactLine tl = fact.createLine(null, m_taxes[i].getAccount(DocTax.ACCTTYPE_TaxDue, as),getC_Currency_ID(), null, amt);
+							if (tl != null)
+								tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
 						}
 					}
-					
-					if(amt.compareTo(Env.ZERO) > 0) {
-						fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt.add(DPAmt));
-					}else {
-						fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt);
-					}
-					
-					if (!p_lines[i].isItem())
+					//  Revenue                 CR
+					for (int i = 0; i < p_lines.length; i++)
 					{
-						grossAmt = grossAmt.subtract(amt);
-						serviceAmt = serviceAmt.add(amt);
+						amt = p_lines[i].getAmtSource();
+						BigDecimal dAmt = null;
+						if (as.isTradeDiscountPosted())
+						{
+							BigDecimal discount = p_lines[i].getDiscount();
+							if (discount != null && discount.signum() != 0)
+							{
+								amt = amt.add(discount);
+								dAmt = discount;
+								fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),getC_Currency_ID(), dAmt, null);
+							}
+						}
+						
+						if(amt.compareTo(Env.ZERO) > 0) {
+							fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt.add(DPAmt));
+						}else {
+							fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt);
+						}
+						
+						if (!p_lines[i].isItem())
+						{
+							grossAmt = grossAmt.subtract(amt);
+							serviceAmt = serviceAmt.add(amt);
+						}
 					}
-				}
-
-				//  Receivables     DR
-				int receivables_ID = getValidCombination_ID(Doc.ACCTTYPE_C_Receivable, as);
-				int receivablesServices_ID = getValidCombination_ID (Doc.ACCTTYPE_C_Receivable_Services, as);
-				DPAcct_ID = EPIDoc.getISMValidCombination_ID (EPIDoc.ACCTTYPE_C_Invoice_DP, as,invoice);
-			
+	
+					//  Receivables     DR
+					int receivables_ID = getValidCombination_ID(Doc.ACCTTYPE_C_Receivable, as);
+					int receivablesServices_ID = getValidCombination_ID (Doc.ACCTTYPE_C_Receivable_Services, as);
+					DPAcct_ID = EPIDoc.getISMValidCombination_ID (EPIDoc.ACCTTYPE_C_Invoice_DP, as,invoice);
 				
-				if (m_allLinesItem || !as.isPostServices()
-					|| receivables_ID == receivablesServices_ID)
-				{
-					grossAmt = getAmount(Doc.AMTTYPE_Gross);
-					serviceAmt = Env.ZERO;
-				}
-				else if (m_allLinesService)
-				{
-					serviceAmt = getAmount(Doc.AMTTYPE_Gross);
-					grossAmt = Env.ZERO;
-				}
-				
-				if(DPAmt.signum() != 0)
-					fact.createLine(null, MAccount.get(getCtx(), DPAcct_ID),getC_Currency_ID(), DPAmt, null);
-				if (grossAmt.signum() != 0)
-					fact.createLine(null, MAccount.get(getCtx(), receivables_ID),getC_Currency_ID(), grossAmt, null);
-				if (serviceAmt.signum() != 0)
-					fact.createLine(null, MAccount.get(getCtx(), receivablesServices_ID),getC_Currency_ID(), serviceAmt, null);
-
-				//  Set Locations
-				FactLine[] fLines = fact.getLines();
-				for (int i = 0; i < fLines.length; i++)
-				{
-					if (fLines[i] != null)
+					
+					if (m_allLinesItem || !as.isPostServices()
+						|| receivables_ID == receivablesServices_ID)
 					{
-						fLines[i].setLocationFromOrg(fLines[i].getAD_Org_ID(), true);      //  from Loc
-						fLines[i].setLocationFromBPartner(getC_BPartner_Location_ID(), false);  //  to Loc
+						grossAmt = getAmount(Doc.AMTTYPE_Gross);
+						serviceAmt = Env.ZERO;
+					}
+					else if (m_allLinesService)
+					{
+						serviceAmt = getAmount(Doc.AMTTYPE_Gross);
+						grossAmt = Env.ZERO;
+					}
+					
+					if(DPAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), DPAcct_ID),getC_Currency_ID(), DPAmt, null);
+					if (grossAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivables_ID),getC_Currency_ID(), grossAmt, null);
+					if (serviceAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivablesServices_ID),getC_Currency_ID(), serviceAmt, null);
+	
+					//  Set Locations
+					FactLine[] fLines = fact.getLines();
+					for (int i = 0; i < fLines.length; i++)
+					{
+						if (fLines[i] != null)
+						{
+							fLines[i].setLocationFromOrg(fLines[i].getAD_Org_ID(), true);      //  from Loc
+							fLines[i].setLocationFromBPartner(getC_BPartner_Location_ID(), false);  //  to Loc
+						}
 					}
 				}
-				
 				//ARIFINAL
 				
 			}else {

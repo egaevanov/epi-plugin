@@ -17,7 +17,13 @@ Require-Bundle: org.adempiere.base;bundle-version="6.2.0",
 Import-Package: org.apache.tools.ant.types.optional.image,
  org.osgi.framework;version="1.8.0",
  org.zkoss.image
-Export-Package: org.epi.component
+Export-Package: org.epi.acct,
+ org.epi.callout,
+ org.epi.component,
+ org.epi.model,
+ org.epi.process,
+ org.epi.utils,
+ org.epi.validator
 Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
 Bundle-ActivationPolicy: lazy
 Service-Component: OSGI-INF/EPIProcessFactory.xml,

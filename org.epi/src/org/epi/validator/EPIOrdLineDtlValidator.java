@@ -5,10 +5,12 @@ import java.math.BigDecimal;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MOrg;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.epi.model.X_C_OrderlineDtl;
+import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
 public class EPIOrdLineDtlValidator {
@@ -19,9 +21,15 @@ public class EPIOrdLineDtlValidator {
 		
 		String msgOrdLineDtl = "";
 		X_C_OrderlineDtl ordLineDtl = (X_C_OrderlineDtl) po;
+		
+		MOrg org = new MOrg(ordLineDtl.getCtx(), ordLineDtl.getAD_Org_ID(), null);
+
+		
 		if (event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)||event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_DELETE)) {
 			
-			msgOrdLineDtl = beforeSave(ordLineDtl);
+			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+				msgOrdLineDtl = beforeSaveEPI(ordLineDtl);	
+			}
 			
 		}
 		
@@ -29,7 +37,7 @@ public class EPIOrdLineDtlValidator {
 
 	}
 	
-	private static String beforeSave(X_C_OrderlineDtl LineDtl) {
+	private static String beforeSaveEPI(X_C_OrderlineDtl LineDtl) {
 		
 		String rslt = "";
 		
