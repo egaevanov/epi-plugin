@@ -33,7 +33,7 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20200622L;
+	private static final long serialVersionUID = 20200709L;
 
     /** Standard Constructor */
     public X_T_Report_Ledger (Properties ctx, int T_Report_Ledger_ID, String trxName)
@@ -41,6 +41,7 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
       super (ctx, T_Report_Ledger_ID, trxName);
       /** if (T_Report_Ledger_ID == 0)
         {
+			setT_Report_Ledger_ID (0);
         } */
     }
 
@@ -51,7 +52,7 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
     }
 
     /** AccessLevel
-      * @return 4 - System 
+      * @return 3 - Client - Org 
       */
     protected int get_AccessLevel()
     {
@@ -72,18 +73,32 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
       return sb.toString();
     }
 
+	public org.compiere.model.I_C_ElementValue getAccount() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_ElementValue)MTable.get(getCtx(), org.compiere.model.I_C_ElementValue.Table_Name)
+			.getPO(getAccount_ID(), get_TrxName());	}
+
 	/** Set Account.
-		@param Account Account	  */
-	public void setAccount (String Account)
+		@param Account_ID 
+		Account used
+	  */
+	public void setAccount_ID (int Account_ID)
 	{
-		set_Value (COLUMNNAME_Account, Account);
+		if (Account_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_Account_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_Account_ID, Integer.valueOf(Account_ID));
 	}
 
 	/** Get Account.
-		@return Account	  */
-	public String getAccount () 
+		@return Account used
+	  */
+	public int getAccount_ID () 
 	{
-		return (String)get_Value(COLUMNNAME_Account);
+		Integer ii = (Integer)get_Value(COLUMNNAME_Account_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	public org.compiere.model.I_AD_PInstance getAD_PInstance() throws RuntimeException
@@ -222,6 +237,23 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
 		return (String)get_Value(COLUMNNAME_DocumentNo);
 	}
 
+	/** Set Element Name.
+		@param ElementName 
+		Name of the Element
+	  */
+	public void setElementName (String ElementName)
+	{
+		set_Value (COLUMNNAME_ElementName, ElementName);
+	}
+
+	/** Get Element Name.
+		@return Name of the Element
+	  */
+	public String getElementName () 
+	{
+		return (String)get_Value(COLUMNNAME_ElementName);
+	}
+
 	/** Set org_name.
 		@param org_name org_name	  */
 	public void setorg_name (String org_name)
@@ -236,8 +268,8 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
 		return (String)get_Value(COLUMNNAME_org_name);
 	}
 
-	/** Set T_Report_Ledger_ID.
-		@param T_Report_Ledger_ID T_Report_Ledger_ID	  */
+	/** Set Report Ledger.
+		@param T_Report_Ledger_ID Report Ledger	  */
 	public void setT_Report_Ledger_ID (int T_Report_Ledger_ID)
 	{
 		if (T_Report_Ledger_ID < 1) 
@@ -246,8 +278,8 @@ public class X_T_Report_Ledger extends PO implements I_T_Report_Ledger, I_Persis
 			set_ValueNoCheck (COLUMNNAME_T_Report_Ledger_ID, Integer.valueOf(T_Report_Ledger_ID));
 	}
 
-	/** Get T_Report_Ledger_ID.
-		@return T_Report_Ledger_ID	  */
+	/** Get Report Ledger.
+		@return Report Ledger	  */
 	public int getT_Report_Ledger_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_T_Report_Ledger_ID);

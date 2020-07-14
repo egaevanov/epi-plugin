@@ -33,10 +33,8 @@ public class EPIInvoiceLineValidator {
 		
 		MOrg org = new MOrg(InvLine.getCtx(), InvLine.getAD_Org_ID(), null);
 
-		
-		if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
 				msgInv = beforeSaveEPI(InvLine);
 			}
 		}

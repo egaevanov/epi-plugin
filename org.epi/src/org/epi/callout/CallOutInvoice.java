@@ -19,6 +19,10 @@ public class CallOutInvoice extends CalloutEngine implements IColumnCallout  {
 
 		Integer AD_Org_ID = (Integer)mTab.getValue("AD_Org_ID");
 		
+		if(AD_Org_ID == null) {
+			AD_Org_ID = 0;
+		}
+		
 		if(AD_Org_ID <=0)
 			return"";		
 		

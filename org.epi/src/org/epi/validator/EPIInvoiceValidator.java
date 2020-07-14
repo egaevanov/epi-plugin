@@ -3,6 +3,7 @@ package org.epi.validator;
 import java.util.Calendar;
 
 import org.adempiere.base.event.IEventTopics;
+import org.compiere.model.MConversionRate;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
 import org.compiere.model.MInvoiceLine;
@@ -14,6 +15,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.epi.model.X_ISM_Budget_Transaction;
+import org.epi.process.EPICheckCurrency;
 import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
@@ -27,25 +29,19 @@ public class EPIInvoiceValidator {
 		MInvoice Invoice = (MInvoice) po;
 		
 		MOrg org = new MOrg(Invoice.getCtx(), Invoice.getAD_Org_ID(), null);
-
-		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgInv = beforeCompleteEPI(Invoice);
-			}
-			
-		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgInv = beforeReverseEPI(Invoice);
-			}
 		
-		}else if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgInv = beforeSaveEPI(Invoice);
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			
+			if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {	
+				msgInv = beforeCompleteEPI(Invoice);	
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
+					msgInv = beforeReverseEPI(Invoice);
+			}else if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
+					msgInv = beforeSaveEPI(Invoice);
 			}
-
+			
 		}
-		
+			
 	return msgInv;
 
 	}
@@ -54,51 +50,29 @@ public class EPIInvoiceValidator {
 
 		String rslt = "";
 
-		if(Inv.isSOTrx() && !Inv.isReversal()) {
-			
-			
+		if(Inv.isSOTrx() && !Inv.isReversal()) {	
 			
 		}else if(!Inv.isSOTrx() && !Inv.isReversal()) {
-			
-			
-			
-			MInvoiceLine[] lines = Inv.getLines();
-			
-			
-			for(MInvoiceLine line : lines ) {
 				
-				MOrderLine ordLine = new MOrderLine(Env.getCtx(), line.getC_OrderLine_ID(), null);
-				
-				X_ISM_Budget_Transaction BudgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), 0, Inv.get_TrxName());
-				BudgetTrx.setAD_Org_ID(line.getAD_Org_ID());
-				BudgetTrx.setBudgetAmt(line.getLineNetAmt());
-				BudgetTrx.setC_Invoice_ID(line.getC_Invoice_ID());
-				BudgetTrx.setC_InvoiceLine_ID(line.getC_InvoiceLine_ID());
-				BudgetTrx.setBudget_Status("AL");
-				BudgetTrx.setDateInvoiced(Inv.getDateOrdered());
-				BudgetTrx.setISM_Budget_Line_ID(ordLine.get_ValueAsInt("ISM_Budget_Line_ID"));
-				BudgetTrx.saveEx();
-				
-				StringBuilder getBudgetTrx = new StringBuilder();
-
-				getBudgetTrx.append("SELECT ISM_Budget_Transaction_ID ");
-				getBudgetTrx.append(" FROM ISM_Budget_Transaction ");
-				getBudgetTrx.append(" WHERE AD_Client_ID = ? ");
-				getBudgetTrx.append(" AND AD_Org_ID = ? ");
-				getBudgetTrx.append(" AND C_OrderLine_ID = ?");
-				getBudgetTrx.append(" AND Budget_Status = 'BO'");
-				
-				Integer ISM_Budget_Transaction_ID = DB.getSQLValueEx(Inv.get_TrxName(), getBudgetTrx.toString(), new Object[]{Inv.getAD_Client_ID(),Inv.getAD_Org_ID(),line.getC_OrderLine_ID()});
-
-				if(ISM_Budget_Transaction_ID > 0) {
-					
-					X_ISM_Budget_Transaction budgetOrdTrx = new X_ISM_Budget_Transaction(Env.getCtx(), ISM_Budget_Transaction_ID, Inv.get_TrxName());
-					budgetOrdTrx.setBudgetAmt(Env.ZERO);
-					budgetOrdTrx.saveEx();
-					
+			boolean isMatchCur = CurrencyCheck(Inv);
+			
+			if(isMatchCur) {	
+				createBudgetTrx(Inv,null);
+			}else {
+				Integer convRate = EPICheckCurrency.ConvertionRateCheck(Inv.getAD_Client_ID(), Inv.getC_Currency_ID(), Inv.getDateInvoiced(), Inv.get_TrxName());
+				if(convRate == null) {
+					convRate = 0;
 				}
 				
-			}	
+				if(convRate <= 0) {
+					return "Currency Rate Setup Is Not Available";
+				}
+						
+				MConversionRate rate = new MConversionRate(Inv.getCtx(), convRate, Inv.get_TrxName());
+				
+				createBudgetTrx(Inv, rate);
+				
+			}
 			
 		}
 	
@@ -239,5 +213,90 @@ public class EPIInvoiceValidator {
 		
 }
 	
+	
+	private static void createBudgetTrx(MInvoice Inv, MConversionRate rate) {
+		
+		MInvoiceLine[] lines = Inv.getLines();
+		
+		
+		for(MInvoiceLine line : lines ) {
+			
+			MOrderLine ordLine = new MOrderLine(Env.getCtx(), line.getC_OrderLine_ID(), null);
+			
+			X_ISM_Budget_Transaction BudgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), 0, Inv.get_TrxName());
+			BudgetTrx.setAD_Org_ID(line.getAD_Org_ID());
+			
+			if(rate != null) {
+				BudgetTrx.setBudgetAmt(line.getLineNetAmt().multiply(rate.getMultiplyRate()));
+			}else {
+				BudgetTrx.setBudgetAmt(line.getLineNetAmt());
+			}
+			BudgetTrx.setC_Invoice_ID(line.getC_Invoice_ID());
+			BudgetTrx.setC_InvoiceLine_ID(line.getC_InvoiceLine_ID());
+			BudgetTrx.setBudget_Status("AL");
+			BudgetTrx.setDateInvoiced(Inv.getDateOrdered());
+			BudgetTrx.setISM_Budget_Line_ID(ordLine.get_ValueAsInt("ISM_Budget_Line_ID"));
+			BudgetTrx.saveEx();
+			
+			StringBuilder getBudgetTrx = new StringBuilder();
+
+			getBudgetTrx.append("SELECT ISM_Budget_Transaction_ID ");
+			getBudgetTrx.append(" FROM ISM_Budget_Transaction ");
+			getBudgetTrx.append(" WHERE AD_Client_ID = ? ");
+			getBudgetTrx.append(" AND AD_Org_ID = ? ");
+			getBudgetTrx.append(" AND C_OrderLine_ID = ?");
+			getBudgetTrx.append(" AND Budget_Status = 'BO'");
+			
+			Integer ISM_Budget_Transaction_ID = DB.getSQLValueEx(Inv.get_TrxName(), getBudgetTrx.toString(), new Object[]{Inv.getAD_Client_ID(),Inv.getAD_Org_ID(),line.getC_OrderLine_ID()});
+
+			if(ISM_Budget_Transaction_ID > 0) {
+				
+				X_ISM_Budget_Transaction budgetOrdTrx = new X_ISM_Budget_Transaction(Env.getCtx(), ISM_Budget_Transaction_ID, Inv.get_TrxName());
+				budgetOrdTrx.setBudgetAmt(Env.ZERO);
+				budgetOrdTrx.saveEx();
+				
+			}
+			
+		}	
+		
+	}
+	
+//	private static Integer ConvertionRateCheck(MInvoice inv) {
+//		Integer rslt = 0;
+//		
+//		StringBuilder SQLCheckCurRate = new StringBuilder();
+//		SQLCheckCurRate.append("SELECT c_conversion_rate_id ");
+//		SQLCheckCurRate.append(" FROM c_conversion_rate");
+//		SQLCheckCurRate.append(" WHERE isactive = 'Y'");
+//		SQLCheckCurRate.append(" AND ad_client_id = "+ inv.getAD_Client_ID());
+//		SQLCheckCurRate.append(" AND c_currency_id = "+ inv.getC_Currency_ID());
+//		SQLCheckCurRate.append(" AND validto >= '"+ inv.getDateOrdered()+"'");
+//		
+//		rslt = DB.getSQLValueEx(inv.get_TrxName(), SQLCheckCurRate.toString());
+//			
+//		return rslt;
+//		
+//	}
+	
+	private static boolean CurrencyCheck(MInvoice inv) {
+		boolean rslt = false;
+		
+		StringBuilder SQLGetCur = new StringBuilder();
+		SQLGetCur.append("SELECT CASE WHEN inv.c_currency_id = acs.c_currency_id ");
+		SQLGetCur.append(" THEN 1 ELSE 0 END AS return ");
+		SQLGetCur.append(" FROM c_invoice inv");
+		SQLGetCur.append(" LEFT JOIN c_acctschema acs on inv.ad_client_id = acs.ad_client_id");
+		SQLGetCur.append(" WHERE inv.c_invoice_id = "+ inv.getC_Invoice_ID());
+		SQLGetCur.append(" AND acs.isactive = 'Y'");
+		
+		int cur = DB.getSQLValueEx(inv.get_TrxName(), SQLGetCur.toString());
+		
+		if(cur == 1) {
+			rslt = true;
+		}
+		
+		return rslt;
+		
+	}
 	
 }

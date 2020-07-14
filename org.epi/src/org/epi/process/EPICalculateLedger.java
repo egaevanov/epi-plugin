@@ -21,6 +21,9 @@ public class EPICalculateLedger extends SvrProcess{
 	
 	private Timestamp p_dateAcct = null;
 	private Timestamp p_dateAcctTo  = null;
+	
+	private String p_AccountNo = "";
+	private String p_AccountNoTo = "";
 
 	private int p_ad_org_id = 0;
 	private MOrg org = null;	
@@ -41,9 +44,16 @@ public class EPICalculateLedger extends SvrProcess{
 			}else if (name.equals("DateAcct")) {
 				p_dateAcct = para[i].getParameterAsTimestamp();
 				p_dateAcctTo = para[i].getParameter_ToAsTimestamp();			
+			}else if (name.equals("AccountNo")) {
+				p_AccountNo = para[i].getParameterAsString();
+				p_AccountNoTo = (String) para[i].getParameter_To();
 			}else
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
 		}
+		
+		p_AccountNo.trim();
+		p_AccountNoTo = p_AccountNoTo.trim();
+		
 	
 	}
 
@@ -82,6 +92,11 @@ public class EPICalculateLedger extends SvrProcess{
 		SQLAccountDetect.append(" WHERE fa.ad_client_id = ? ");
 		SQLAccountDetect.append(" AND fa.ad_org_id = ? ");
 		SQLAccountDetect.append(" AND fa.dateacct BETWEEN '"+p_dateAcct+"' AND '"+p_dateAcctTo+"'");	
+		if(p_AccountNo !=  null && p_AccountNoTo != null && !p_AccountNoTo.isEmpty()) {
+			SQLAccountDetect.append(" AND ce.value::numeric BETWEEN "+p_AccountNo+" AND "+p_AccountNoTo);
+		}else if(p_AccountNo !=  null && p_AccountNoTo.isEmpty()) {
+			SQLAccountDetect.append(" AND ce.value = '"+p_AccountNo+"'");
+		}	
 		SQLAccountDetect.append(" Order by ce.value asc");	
 
 		
@@ -106,7 +121,7 @@ public class EPICalculateLedger extends SvrProcess{
 		SQLTrx.append(" WHERE fa.ad_client_id = ? ");
 		SQLTrx.append(" AND fa.ad_org_id = ? ");
 		SQLTrx.append(" AND fa.account_id = ? ");
-		SQLTrx.append(" AND fa.dateacct BETWEEN '"+p_dateAcct+"' AND '"+p_dateAcctTo+"'");	
+		SQLTrx.append(" AND fa.dateacct BETWEEN '"+p_dateAcct+"' AND '"+p_dateAcctTo+"'");
 		SQLTrx.append(" Order by ce.value::numeric ,fa.dateacct asc");	
 		
 		
@@ -119,7 +134,7 @@ public class EPICalculateLedger extends SvrProcess{
 		PreparedStatement pstmtSaldo = null;
      	ResultSet rsSaldo = null;
 			try {
-				pstmtSaldo = DB.prepareStatement(SQLAccountDetect.toString(), null);
+				pstmtSaldo = DB.prepareStatement(SQLAccountDetect.toString(), get_TrxName());
 				pstmtSaldo.setInt(1,getAD_Client_ID());	
 				pstmtSaldo.setInt(2,p_ad_org_id);	
 				
@@ -135,12 +150,12 @@ public class EPICalculateLedger extends SvrProcess{
 					
 					balance = saldoawal;
 					
-					X_T_Report_Ledger ledgerSaldoAwal = new X_T_Report_Ledger(getCtx(), 0, get_TrxName());
+					X_T_Report_Ledger ledgerSaldoAwal = new X_T_Report_Ledger(getCtx(), null, get_TrxName());
 					ledgerSaldoAwal.setAD_Org_ID(p_ad_org_id);
 					ledgerSaldoAwal.setAD_PInstance_ID(getAD_PInstance_ID());
 					ledgerSaldoAwal.setorg_name(org.getName());
 					ledgerSaldoAwal.setDocumentNo("");
-					ledgerSaldoAwal.setAccount(rsSaldo.getString(1));
+					ledgerSaldoAwal.set_ValueNoCheck("Account",rsSaldo.getString(1));
 					ledgerSaldoAwal.setDateAcct(newtime);
 					ledgerSaldoAwal.setDescription("SALDO AWAL");
 					ledgerSaldoAwal.setAmtAcctCr(Env.ZERO);
@@ -148,14 +163,14 @@ public class EPICalculateLedger extends SvrProcess{
 					ledgerSaldoAwal.setBalance(saldoawal);
 					ledgerSaldoAwal.set_ValueNoCheck("Account_ID", rsSaldo.getInt(2));
 					ledgerSaldoAwal.set_ValueNoCheck("ElementName", rsSaldo.getString(3));
-
 					ledgerSaldoAwal.saveEx();
 					
+//					System.out.println("Element Name Saldo:"+ rsSaldo.getString(3));
 					
 					PreparedStatement pstmt = null;
 			     	ResultSet rs = null;
 						try {
-							pstmt = DB.prepareStatement(SQLTrx.toString(), null);
+							pstmt = DB.prepareStatement(SQLTrx.toString(), get_TrxName());
 							pstmt.setInt(1,getAD_Client_ID());	
 							pstmt.setInt(2,p_ad_org_id);	
 							pstmt.setInt(3,rsSaldo.getInt(2));
@@ -166,7 +181,7 @@ public class EPICalculateLedger extends SvrProcess{
 
 								//System.out.println(rs.getInt(1));
 								
-								X_T_Report_Ledger ledger = new X_T_Report_Ledger(getCtx(), 0, get_TrxName());
+								X_T_Report_Ledger ledger = new X_T_Report_Ledger(getCtx(), null, get_TrxName());
 								ledger.setAD_Org_ID(p_ad_org_id);
 								ledger.setAD_PInstance_ID(getAD_PInstance_ID());
 								ledger.setorg_name(rs.getString(2));
@@ -174,7 +189,6 @@ public class EPICalculateLedger extends SvrProcess{
 								
 								
 								StringBuilder SQLGetDocNo = new StringBuilder();
-								
 								if(rs.getString(3).contentEquals(MBankStatement.Table_Name)) {
 									SQLGetDocNo.append("SELECT Description");
 								}else {
@@ -185,15 +199,30 @@ public class EPICalculateLedger extends SvrProcess{
 								SQLGetDocNo.append(" WHERE ad_client_id = "+getAD_Client_ID());
 								SQLGetDocNo.append(" AND "+rs.getString(3)+"_ID =" + rs.getInt(4));
 								
+								
+								StringBuilder SQLGetDesc = new StringBuilder();
+								SQLGetDesc.append("SELECT Description");
+								SQLGetDesc.append(" FROM "+rs.getString(3));
+								SQLGetDesc.append(" WHERE ad_client_id = "+getAD_Client_ID());
+								SQLGetDesc.append(" AND "+rs.getString(3)+"_ID =" + rs.getInt(4));
+								
 								//System.out.println("SQL -->"+ SQLGetDocNo.toString());
-								String documentno = DB.getSQLValueStringEx(get_TrxName(), SQLGetDocNo.toString());					
+								String documentno = DB.getSQLValueStringEx(get_TrxName(), SQLGetDocNo.toString());	
+								String description = DB.getSQLValueStringEx(get_TrxName(), SQLGetDesc.toString());	
+								
+								if(description == null) {
+									description = "-";
+								}
+
 								ledger.setDocumentNo(documentno);
-								ledger.setAccount(rs.getString(5));
-								ledger.setDescription(rs.getString(6));
+								ledger.set_ValueNoCheck("Account",rs.getString(5));
+								ledger.setDescription(description);
 								ledger.setAmtAcctCr(rs.getBigDecimal(7));
 								ledger.setAmtAcctDr(rs.getBigDecimal(8));
 								ledger.set_ValueNoCheck("Account_ID", rs.getInt(9));
-								ledgerSaldoAwal.set_ValueNoCheck("ElementName", rs.getString(6));
+								ledger.set_ValueNoCheck("ElementName", rs.getString(6));
+
+//								System.out.println("Element Name trx:"+ rs.getString(6));
 
 								//System.out.println("Saldo :"+balance);
 								if(rs.getBigDecimal(7).compareTo(Env.ZERO) > 0) {
@@ -210,7 +239,7 @@ public class EPICalculateLedger extends SvrProcess{
 
 									balance = balance.add(rs.getBigDecimal(8));
 									ledger.setBalance(balance);
-									
+						
 									//System.out.println("saldo akhir : "+balance);
 								}
 								

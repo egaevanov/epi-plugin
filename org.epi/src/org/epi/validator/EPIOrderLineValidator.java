@@ -25,15 +25,10 @@ public class EPIOrderLineValidator {
 		MOrderLine ordLine = (MOrderLine) po;
 		
 		MOrg org = new MOrg(ordLine.getCtx(), ordLine.getAD_Org_ID(), null);
-
-		
-		if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {		
 				msgInv = beforeSaveEPI(ordLine,event);
-			}
-
-			
+			}			
 		}
 		
 	return msgInv;

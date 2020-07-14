@@ -9,6 +9,7 @@ import java.util.logging.Level;
 
 import org.adempiere.base.event.IEventTopics;
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MConversionRate;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
@@ -28,6 +29,7 @@ import org.compiere.util.Msg;
 import org.epi.model.X_C_OrderlineDtl;
 import org.epi.model.X_ISM_Budget_Transaction;
 import org.epi.model.X_M_InOutLineDtl;
+import org.epi.process.EPICheckCurrency;
 import org.epi.utils.FinalVariableGlobal;
 import org.osgi.service.event.Event;
 
@@ -41,21 +43,26 @@ public class EPIOrderValidator {
 		MOrder order = (MOrder) po;
 		
 		MOrg org = new MOrg(order.getCtx(), order.getAD_Org_ID(), null);
-
 		
-		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			
+			if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
 				msgOrd = beforeCompleteEPI(order);
-			}
-		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_CLOSE)) {
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_CLOSE)) {
+				msgOrd = beforeCloseEPI(order);
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)){
 				msgOrd = beforeCloseEPI(order);
 			}
-		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)) {
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgOrd = beforeCloseEPI(order);
-			}
+		
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.TBU)) {
+
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.RMH)) {
+
 		}
+
 		
 	return msgOrd;
 
@@ -190,23 +197,27 @@ public class EPIOrderValidator {
 			
 		}else if(!Ord.isSOTrx()) {
 			
-			MOrderLine[] lines = Ord.getLines();
+			boolean isMatchCur = CurrencyCheck(Ord);
 			
-			for(MOrderLine line  : lines) {
+			if(isMatchCur) {	
+				createBudgetTrx(Ord,null);
+			}else {
+				Integer convRate = EPICheckCurrency.ConvertionRateCheck(Ord.getAD_Client_ID(), Ord.getC_Currency_ID(), Ord.getDateOrdered(), Ord.get_TrxName());
+				if(convRate == null) {
+					convRate = 0;
+				}
 				
-				X_ISM_Budget_Transaction BudgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), 0, Ord.get_TrxName());
-				BudgetTrx.setAD_Org_ID(line.getAD_Org_ID());
-				BudgetTrx.setC_Order_ID(line.getC_Order_ID());
-				BudgetTrx.setC_OrderLine_ID(line.getC_OrderLine_ID());
-				BudgetTrx.setBudgetAmt(line.getLineNetAmt());
-				BudgetTrx.setBudget_Status("BO");
-				BudgetTrx.setDateOrdered(line.getDateOrdered());
-				BudgetTrx.setISM_Budget_Line_ID(line.get_ValueAsInt("ISM_Budget_Line_ID"));
-				BudgetTrx.saveEx();
+				if(convRate <= 0) {
+					return "Currency Rate Setup Is Not Available";
+				}
+				
+				
+				MConversionRate rate = new MConversionRate(Ord.getCtx(), convRate, Ord.get_TrxName());
+				
+				createBudgetTrx(Ord, rate);
 				
 			}
 			
-		
 		}
 		return rslt;
 		
@@ -218,54 +229,122 @@ public class EPIOrderValidator {
 		
 		String rslt = "";
 		
-			StringBuilder getBudgetTrx = new StringBuilder();
-			
-			getBudgetTrx.append("SELECT ISM_Budget_Transaction_ID ");
-			getBudgetTrx.append(" FROM ISM_Budget_Transaction ");
-			getBudgetTrx.append(" WHERE AD_Client_ID = ? ");
-			getBudgetTrx.append(" AND AD_Org_ID = ? ");
-			getBudgetTrx.append(" AND C_Order_ID = ?");
 		
-			
-			PreparedStatement pstmt = null;
-	     	ResultSet rs = null;
-				try {
-					pstmt = DB.prepareStatement(getBudgetTrx.toString(), null);
-					pstmt.setInt(1,Ord.getAD_Client_ID());	
-					pstmt.setInt(2,Ord.getAD_Org_ID());
-					pstmt.setInt(3,Ord.getC_Order_ID());
+		StringBuilder getBudgetTrx = new StringBuilder();
+		getBudgetTrx.append("SELECT ISM_Budget_Transaction_ID ");
+		getBudgetTrx.append(" FROM ISM_Budget_Transaction ");
+		getBudgetTrx.append(" WHERE AD_Client_ID = ? ");
+		getBudgetTrx.append(" AND AD_Org_ID = ? ");
+		getBudgetTrx.append(" AND C_Order_ID = ?");
+	
+		
+		PreparedStatement pstmt = null;
+     	ResultSet rs = null;
+			try {
+				pstmt = DB.prepareStatement(getBudgetTrx.toString(), null);
+				pstmt.setInt(1,Ord.getAD_Client_ID());	
+				pstmt.setInt(2,Ord.getAD_Org_ID());
+				pstmt.setInt(3,Ord.getC_Order_ID());
 
-					rs = pstmt.executeQuery();
-					while (rs.next()) {
-						
-						Integer ISM_Budget_Transaction_ID = rs.getInt(1);
-						
-						if(ISM_Budget_Transaction_ID > 0) {
-						
-							X_ISM_Budget_Transaction budgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), ISM_Budget_Transaction_ID, Ord.get_TrxName());
-							budgetTrx.setBudget_Status("VO");
-							budgetTrx.setBudgetAmt(Env.ZERO);
-							budgetTrx.saveEx();
-							
-						}
-
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
 					
+					Integer ISM_Budget_Transaction_ID = rs.getInt(1);
+					
+					if(ISM_Budget_Transaction_ID > 0) {
+					
+						X_ISM_Budget_Transaction budgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), ISM_Budget_Transaction_ID, Ord.get_TrxName());
+						budgetTrx.setBudget_Status("VO");
+						budgetTrx.setBudgetAmt(Env.ZERO);
+						budgetTrx.saveEx();
+						
 					}
 
-				} catch (SQLException err) {
-					
-					log.log(Level.SEVERE, getBudgetTrx.toString(), err);
-					
-					
-				} finally {
-					
-					DB.close(rs, pstmt);
-					rs = null;
-					pstmt = null;
-					
-				}	
+				
+				}
+
+			} catch (SQLException err) {
+				
+				log.log(Level.SEVERE, getBudgetTrx.toString(), err);
+				
+				
+			} finally {
+				
+				DB.close(rs, pstmt);
+				rs = null;
+				pstmt = null;
+				
+			}	
+		
 		
 		return rslt;
 	}
+	
+	
+	private static boolean CurrencyCheck(MOrder ord) {
+		boolean rslt = false;
+		
+		StringBuilder SQLGetCur = new StringBuilder();
+		SQLGetCur.append("SELECT CASE WHEN ord.c_currency_id = acs.c_currency_id ");
+		SQLGetCur.append(" THEN 1 ELSE 0 END AS return ");
+		SQLGetCur.append(" FROM c_order ord");
+		SQLGetCur.append(" LEFT JOIN c_acctschema acs on ord.ad_client_id = acs.ad_client_id");
+		SQLGetCur.append(" WHERE ord.c_order_id = "+ ord.getC_Order_ID());
+		SQLGetCur.append(" AND acs.isactive = 'Y'");
+		
+		int cur = DB.getSQLValueEx(ord.get_TrxName(), SQLGetCur.toString());
+		
+		if(cur == 1) {
+			rslt = true;
+		}
+		
+		return rslt;
+		
+	}
+	
+//	private static Integer ConvertionRateCheck(MOrder ord) {
+//		Integer rslt = 0;
+//		
+//		StringBuilder SQLCheckCurRate = new StringBuilder();
+//		SQLCheckCurRate.append("SELECT c_conversion_rate_id ");
+//		SQLCheckCurRate.append(" FROM c_conversion_rate");
+//		SQLCheckCurRate.append(" WHERE isactive = 'Y'");
+//		SQLCheckCurRate.append(" AND ad_client_id = "+ ord.getAD_Client_ID());
+//		SQLCheckCurRate.append(" AND c_currency_id = "+ ord.getC_Currency_ID());
+//		SQLCheckCurRate.append(" AND validto >= '"+ ord.getDateOrdered()+"'");
+//		
+//		rslt = DB.getSQLValueEx(ord.get_TrxName(), SQLCheckCurRate.toString());
+//			
+//		return rslt;
+//		
+//	}
+	
+	private static void createBudgetTrx(MOrder Ord, MConversionRate CurrRate) {
+		
+		
+		MOrderLine[] lines = Ord.getLines();
+		
+		for(MOrderLine line  : lines) {
+			
+			X_ISM_Budget_Transaction BudgetTrx = new X_ISM_Budget_Transaction(Env.getCtx(), 0, Ord.get_TrxName());
+			BudgetTrx.setAD_Org_ID(line.getAD_Org_ID());
+			BudgetTrx.setC_Order_ID(line.getC_Order_ID());
+			BudgetTrx.setC_OrderLine_ID(line.getC_OrderLine_ID());
+			if(CurrRate != null) {
+				BudgetTrx.setBudgetAmt(line.getLineNetAmt().multiply(CurrRate.getMultiplyRate()));
+			}else {
+				BudgetTrx.setBudgetAmt(line.getLineNetAmt());
+			}
+			BudgetTrx.setBudget_Status("BO");
+			BudgetTrx.setDateOrdered(line.getDateOrdered());
+			BudgetTrx.setISM_Budget_Line_ID(line.get_ValueAsInt("ISM_Budget_Line_ID"));
+			BudgetTrx.saveEx();
+			
+		}
+		
+		
+	}
+	
+	
 	
 }

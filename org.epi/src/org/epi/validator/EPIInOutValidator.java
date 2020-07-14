@@ -38,20 +38,12 @@ public class EPIInOutValidator {
 		MInOut InOut = (MInOut) po;
 		
 		MOrg org = new MOrg(InOut.getCtx(), InOut.getAD_Org_ID(), null);
-
-		
-		if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgInOut = InOutBeforeCompleteEPI(InOut);
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
+					msgInOut = InOutBeforeCompleteEPI(InOut);	
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
+					msgInOut = InOutBeforeReverseCorrectEPI(InOut);
 			}
-			
-		}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgInOut = InOutBeforeReverseCorrectEPI(InOut);
-			}
-			
 		}
 		
 	return msgInOut;

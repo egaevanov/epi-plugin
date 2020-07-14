@@ -24,14 +24,11 @@ public class EPIGLJournalValidator {
 		MJournal journal = (MJournal) po;
 		
 		MOrg org = new MOrg(journal.getCtx(), journal.getAD_Org_ID(), null);
-		
-	if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
-			
-		if(org.getValue().equals(FinalVariableGlobal.EPI)) {
-			msgJournal = beforeSaveEPI(journal);
+		if(org.getValue().equals(FinalVariableGlobal.EPI)) {	
+			if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {		
+				msgJournal = beforeSaveEPI(journal);
+			}
 		}
-	
-	}
 		
 	return msgJournal;
 
@@ -119,7 +116,6 @@ public class EPIGLJournalValidator {
 		
 		return rslt;
 		
-}
-	
-	
+	}
+		
 }

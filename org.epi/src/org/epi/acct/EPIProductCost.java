@@ -1,5 +1,3 @@
-package org.epi.acct;
-
 /******************************************************************************
  * Product: Adempiere ERP & CRM Smart Business Solution                       *
  * Copyright (C) 1999-2006 ComPiere, Inc. All Rights Reserved.                *
@@ -16,6 +14,7 @@ package org.epi.acct;
  * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
  * or via info@compiere.org or http://www.compiere.org/license.html           *
  *****************************************************************************/
+package org.epi.acct;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;

@@ -25,22 +25,19 @@ public class EPIPaymentValidator {
 		MPayment pay = (MPayment) po;
 		
 		MOrg org = new MOrg(pay.getCtx(), pay.getAD_Org_ID(), null);
-
-		
-		if (event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
-				msgPay = beforeSaveEPI(pay);
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			if (event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
+				msgPay = beforeSaveEPI(pay,event);	
+			}else if(event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {
+				msgPay = beforeSaveEPI(pay,event);
 			}
-			
 		}
-		
 	return msgPay;
 
 	}
 
 	
-private static String beforeSaveEPI(MPayment pay) {
+private static String beforeSaveEPI(MPayment pay,Event event) {
 
 	
 		String rslt = "";
@@ -72,7 +69,7 @@ private static String beforeSaveEPI(MPayment pay) {
 	    
 	    Integer month = calendar.get(Calendar.MONTH)+1;
 	    
-	    if(month != 11 && month != 12) {
+	    if(month != 10 && month != 11 && month != 12) {
 		    monthStr = "0"+String.valueOf(month);
 	    }else {
 	    	monthStr = String.valueOf(month);
@@ -104,6 +101,10 @@ private static String beforeSaveEPI(MPayment pay) {
 				}
 				
 				Integer next = DB.getSQLValueEx(null, SQLSeqNO.toString());
+				if(next == null ||next <= 0) {
+					next = 1;
+				}
+				
 				nextStr = "000"+String.valueOf(next);
 				
 				if(nextStr.length()>4) {
@@ -119,9 +120,22 @@ private static String beforeSaveEPI(MPayment pay) {
 		
 		DocRef = bankCode+monthStr+"-"+yearStr+"-"+nextStr;
 		
-		pay.set_ValueNoCheck("ReferenceNo", DocRef);
-	    pay.saveEx();
 		
+		if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {	
+			pay.set_CustomColumn("ReferenceNo", DocRef);
+			pay.saveEx();
+		}else if(event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {
+			
+			StringBuilder SQLUpdate = new StringBuilder();
+			SQLUpdate.append("UPDATE C_Payment ");
+			SQLUpdate.append(" SET ReferenceNo = '"+DocRef+"'");
+			SQLUpdate.append(" WHERE AD_Client_ID = "+pay.getAD_Client_ID());
+			SQLUpdate.append(" AND AD_Org_ID =  "+pay.getAD_Org_ID());
+			SQLUpdate.append(" AND C_Payment_ID =  "+pay.getC_Payment_ID());
+
+			DB.executeUpdate(SQLUpdate.toString(), pay.get_TrxName());
+
+		}
 		
 		return rslt;
 		

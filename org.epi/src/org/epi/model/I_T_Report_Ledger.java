@@ -32,25 +32,31 @@ public interface I_T_Report_Ledger
     /** TableName=T_Report_Ledger */
     public static final String Table_Name = "T_Report_Ledger";
 
-    /** AD_Table_ID=1000026 */
+    /** AD_Table_ID=1000029 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
 
-    /** AccessLevel = 4 - System 
+    /** AccessLevel = 3 - Client - Org 
      */
-    BigDecimal accessLevel = BigDecimal.valueOf(4);
+    BigDecimal accessLevel = BigDecimal.valueOf(3);
 
     /** Load Meta Data */
 
-    /** Column name Account */
-    public static final String COLUMNNAME_Account = "Account";
+    /** Column name Account_ID */
+    public static final String COLUMNNAME_Account_ID = "Account_ID";
 
-	/** Set Account	  */
-	public void setAccount (String Account);
+	/** Set Account.
+	  * Account used
+	  */
+	public void setAccount_ID (int Account_ID);
 
-	/** Get Account	  */
-	public String getAccount();
+	/** Get Account.
+	  * Account used
+	  */
+	public int getAccount_ID();
+
+	public org.compiere.model.I_C_ElementValue getAccount() throws RuntimeException;
 
     /** Column name AD_Client_ID */
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
@@ -170,6 +176,19 @@ public interface I_T_Report_Ledger
 	  */
 	public String getDocumentNo();
 
+    /** Column name ElementName */
+    public static final String COLUMNNAME_ElementName = "ElementName";
+
+	/** Set Element Name.
+	  * Name of the Element
+	  */
+	public void setElementName (String ElementName);
+
+	/** Get Element Name.
+	  * Name of the Element
+	  */
+	public String getElementName();
+
     /** Column name org_name */
     public static final String COLUMNNAME_org_name = "org_name";
 
@@ -182,10 +201,10 @@ public interface I_T_Report_Ledger
     /** Column name T_Report_Ledger_ID */
     public static final String COLUMNNAME_T_Report_Ledger_ID = "T_Report_Ledger_ID";
 
-	/** Set T_Report_Ledger_ID	  */
+	/** Set Report Ledger	  */
 	public void setT_Report_Ledger_ID (int T_Report_Ledger_ID);
 
-	/** Get T_Report_Ledger_ID	  */
+	/** Get Report Ledger	  */
 	public int getT_Report_Ledger_ID();
 
     /** Column name Updated */

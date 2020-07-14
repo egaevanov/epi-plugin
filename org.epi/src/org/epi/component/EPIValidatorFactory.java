@@ -107,7 +107,6 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_Invoice.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_Invoice.Table_Name);
 
-		
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_InvoiceLine.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_InvoiceLine.Table_Name);
 		
@@ -116,10 +115,11 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 		
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_Payment.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_Payment.Table_Name);
-		
+		registerTableEvent(IEventTopics.PO_BEFORE_CHANGE, X_C_Payment.Table_Name);
+
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_GL_Journal.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_GL_Journal.Table_Name);
-
+		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, X_GL_Journal.Table_Name);
 		
 	}
 	

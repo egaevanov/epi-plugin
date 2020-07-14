@@ -49,7 +49,6 @@ import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLandedCostAllocation;
 import org.compiere.model.MOrg;
 import org.compiere.model.MTax;
-import org.compiere.model.ProductCost;
 import org.compiere.model.X_M_Cost;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -381,8 +380,14 @@ public class EPIDocInvoice extends Doc
 			
 			MInvoice invoice = (MInvoice)getPO();
 			MDocType DocType = new MDocType(getCtx(), invoice.getDocTypeID(), null);
+			
+			String docDesc = DocType.getDescription();
+			
+			if(docDesc == null) {
+				docDesc = "";
+			}
 						
-			if(DocType.getDescription().equals("ARIDP")) {
+			if(docDesc.equals(FinalVariableGlobal.EPIFIRSTDP)) {
 				
 				
 				MOrg org = new MOrg(invoice.getCtx(), invoice.getAD_Org_ID(), null);
@@ -423,11 +428,11 @@ public class EPIDocInvoice extends Doc
 								amt = amt.add(discount);
 								dAmt = discount;
 								fact.createLine (p_lines[i],
-										p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),
+										p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_TDiscountGrant, as),
 										getC_Currency_ID(), dAmt, null);
 							}
 						}
-						fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_ISM_DP, as),getC_Currency_ID(), null, amt);
+						fact.createLine (p_lines[i],p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_ISM_DP, as),getC_Currency_ID(), null, amt);
 						
 						if (!p_lines[i].isItem())
 						{
@@ -470,7 +475,7 @@ public class EPIDocInvoice extends Doc
 					//ARIDP
 				}
 				
-			}else if(DocType.getDescription().equals("ARIFINAL")) {
+			}else if(docDesc.equals(FinalVariableGlobal.EPIFINALDP)) {
 				
 				MOrg org = new MOrg(invoice.getCtx(), invoice.getAD_Org_ID(), null);
 				
@@ -527,14 +532,14 @@ public class EPIDocInvoice extends Doc
 							{
 								amt = amt.add(discount);
 								dAmt = discount;
-								fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),getC_Currency_ID(), dAmt, null);
+								fact.createLine (p_lines[i],p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_TDiscountGrant, as),getC_Currency_ID(), dAmt, null);
 							}
 						}
 						
 						if(amt.compareTo(Env.ZERO) > 0) {
-							fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt.add(DPAmt));
+							fact.createLine (p_lines[i],p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt.add(DPAmt));
 						}else {
-							fact.createLine (p_lines[i],p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt);
+							fact.createLine (p_lines[i],p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_Revenue, as),getC_Currency_ID(), null, amt);
 						}
 						
 						if (!p_lines[i].isItem())
@@ -582,6 +587,104 @@ public class EPIDocInvoice extends Doc
 				}
 				//ARIFINAL
 				
+			}else if(docDesc.equals(FinalVariableGlobal.ISMDP)){
+				
+				
+				MOrg org = new MOrg(invoice.getCtx(), invoice.getAD_Org_ID(), null);
+				
+				if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+				
+					//Desc : DPI
+					BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
+					BigDecimal serviceAmt = Env.ZERO;
+	
+					//  Header Charge           CR
+					BigDecimal amt = getAmount(Doc.AMTTYPE_Charge);
+					if (amt != null && amt.signum() != 0)
+						fact.createLine(null, getAccount(Doc.ACCTTYPE_Charge, as),
+							getC_Currency_ID(), null, amt);
+					//  TaxDue                  CR
+					for (int i = 0; i < m_taxes.length; i++)
+					{
+						amt = m_taxes[i].getAmount();
+						if (amt != null && amt.signum() != 0)
+						{
+							FactLine tl = fact.createLine(null, m_taxes[i].getAccount(DocTax.ACCTTYPE_TaxDue, as),
+								getC_Currency_ID(), null, amt);
+							if (tl != null)
+								tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
+						}
+					}
+					//  Revenue                 CR
+					
+					StringBuilder SQLGetBPCustAcct = new StringBuilder();
+					SQLGetBPCustAcct.append("SELECT c_prepayment_acct");
+					SQLGetBPCustAcct.append(" FROM c_bp_customer_acct");
+					SQLGetBPCustAcct.append(" WHERE c_bpartner_id = "+invoice.getC_BPartner_ID());
+					SQLGetBPCustAcct.append(" AND c_acctSchema_id= "+as.getC_AcctSchema_ID());
+
+					int C_ValidCombination_ID = DB.getSQLValueEx(invoice.get_TrxName(), SQLGetBPCustAcct.toString());
+					
+					MAccount DPAcct = new MAccount(getCtx(), C_ValidCombination_ID, null);
+					for (int i = 0; i < p_lines.length; i++)
+					{
+						amt = p_lines[i].getAmtSource();
+						BigDecimal dAmt = null;
+						if (as.isTradeDiscountPosted())
+						{
+							BigDecimal discount = p_lines[i].getDiscount();
+							if (discount != null && discount.signum() != 0)
+							{
+								amt = amt.add(discount);
+								dAmt = discount;
+								fact.createLine (p_lines[i],
+										p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_TDiscountGrant, as),
+										getC_Currency_ID(), dAmt, null);
+							}
+						}
+						fact.createLine (p_lines[i],DPAcct,getC_Currency_ID(), null, amt);
+						
+						if (!p_lines[i].isItem())
+						{
+							grossAmt = grossAmt.subtract(amt);
+							serviceAmt = serviceAmt.add(amt);
+						}
+					}
+	
+					//  Receivables     DR
+					int receivables_ID = getValidCombination_ID(Doc.ACCTTYPE_C_Receivable, as);
+					int receivablesServices_ID = getValidCombination_ID (Doc.ACCTTYPE_C_Receivable_Services, as);
+					if (m_allLinesItem || !as.isPostServices()
+						|| receivables_ID == receivablesServices_ID)
+					{
+						grossAmt = getAmount(Doc.AMTTYPE_Gross);
+						serviceAmt = Env.ZERO;
+					}
+					else if (m_allLinesService)
+					{
+						serviceAmt = getAmount(Doc.AMTTYPE_Gross);
+						grossAmt = Env.ZERO;
+					}
+					if (grossAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivables_ID),
+							getC_Currency_ID(), grossAmt, null);
+					if (serviceAmt.signum() != 0)
+						fact.createLine(null, MAccount.get(getCtx(), receivablesServices_ID),
+							getC_Currency_ID(), serviceAmt, null);
+	
+					//  Set Locations
+					FactLine[] fLines = fact.getLines();
+					for (int i = 0; i < fLines.length; i++)
+					{
+						if (fLines[i] != null)
+						{
+							fLines[i].setLocationFromOrg(fLines[i].getAD_Org_ID(), true);      //  from Loc
+							fLines[i].setLocationFromBPartner(getC_BPartner_Location_ID(), false);  //  to Loc
+						}
+					}
+					//ISMDP
+				}
+				
 			}else {
 								
 				BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
@@ -617,12 +720,12 @@ public class EPIDocInvoice extends Doc
 							amt = amt.add(discount);
 							dAmt = discount;
 							fact.createLine (p_lines[i],
-									p_lines[i].getAccount(ProductCost.ACCTTYPE_P_TDiscountGrant, as),
+									p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_TDiscountGrant, as),
 									getC_Currency_ID(), dAmt, null);
 						}
 					}
 					fact.createLine (p_lines[i],
-						p_lines[i].getAccount(ProductCost.ACCTTYPE_P_Revenue, as),
+						p_lines[i].getAccount(EPIProductCost.ACCTTYPE_P_Revenue, as),
 						getC_Currency_ID(), null, amt);
 					if (!p_lines[i].isItem())
 					{
@@ -706,12 +809,12 @@ public class EPIDocInvoice extends Doc
 						amt = amt.add(discount);
 						dAmt = discount;
 						fact.createLine (p_lines[i],
-								p_lines[i].getAccount (ProductCost.ACCTTYPE_P_TDiscountGrant, as),
+								p_lines[i].getAccount (EPIProductCost.ACCTTYPE_P_TDiscountGrant, as),
 								getC_Currency_ID(), null, dAmt);
 					}
 				}
 				fact.createLine (p_lines[i],
-					p_lines[i].getAccount (ProductCost.ACCTTYPE_P_Revenue, as),
+					p_lines[i].getAccount (EPIProductCost.ACCTTYPE_P_Revenue, as),
 					getC_Currency_ID(), amt, null);
 				if (!p_lines[i].isItem())
 				{
@@ -777,10 +880,10 @@ public class EPIDocInvoice extends Doc
 				boolean landedCost = landedCost(as, fact, line, true);
 				if (landedCost && as.isExplicitCostAdjustment())
 				{
-					fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+					fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 						getC_Currency_ID(), line.getAmtSource(), null);
 					//
-					FactLine fl = fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+					FactLine fl = fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 						getC_Currency_ID(), null, line.getAmtSource());
 					String desc = line.getDescription();
 					if (desc == null)
@@ -791,9 +894,9 @@ public class EPIDocInvoice extends Doc
 				}
 				if (!landedCost)
 				{
-					MAccount expense = line.getAccount(ProductCost.ACCTTYPE_P_Expense, as);
+					MAccount expense = line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as);
 					if (line.isItem())
-						expense = line.getAccount (ProductCost.ACCTTYPE_P_InventoryClearing, as);
+						expense = line.getAccount (EPIProductCost.ACCTTYPE_P_InventoryClearing, as);
 					BigDecimal amt = line.getAmtSource();
 					BigDecimal dAmt = null;
 					if (as.isTradeDiscountPosted() && !line.isItem())
@@ -803,7 +906,7 @@ public class EPIDocInvoice extends Doc
 						{
 							amt = amt.add(discount);
 							dAmt = discount;
-							MAccount tradeDiscountReceived = line.getAccount(ProductCost.ACCTTYPE_P_TDiscountRec, as);
+							MAccount tradeDiscountReceived = line.getAccount(EPIProductCost.ACCTTYPE_P_TDiscountRec, as);
 							fact.createLine (line, tradeDiscountReceived,
 									getC_Currency_ID(), null, dAmt);
 						}
@@ -884,10 +987,10 @@ public class EPIDocInvoice extends Doc
 				boolean landedCost = landedCost(as, fact, line, false);
 				if (landedCost && as.isExplicitCostAdjustment())
 				{
-					fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+					fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 						getC_Currency_ID(), null, line.getAmtSource());
 					//
-					FactLine fl = fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+					FactLine fl = fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 						getC_Currency_ID(), line.getAmtSource(), null);
 					String desc = line.getDescription();
 					if (desc == null)
@@ -898,9 +1001,9 @@ public class EPIDocInvoice extends Doc
 				}
 				if (!landedCost)
 				{
-					MAccount expense = line.getAccount(ProductCost.ACCTTYPE_P_Expense, as);
+					MAccount expense = line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as);
 					if (line.isItem())
-						expense = line.getAccount (ProductCost.ACCTTYPE_P_InventoryClearing, as);
+						expense = line.getAccount (EPIProductCost.ACCTTYPE_P_InventoryClearing, as);
 					BigDecimal amt = line.getAmtSource();
 					BigDecimal dAmt = null;
 					if (as.isTradeDiscountPosted() && !line.isItem())
@@ -910,7 +1013,7 @@ public class EPIDocInvoice extends Doc
 						{
 							amt = amt.add(discount);
 							dAmt = discount;
-							MAccount tradeDiscountReceived = line.getAccount(ProductCost.ACCTTYPE_P_TDiscountRec, as);
+							MAccount tradeDiscountReceived = line.getAccount(EPIProductCost.ACCTTYPE_P_TDiscountRec, as);
 							fact.createLine (line, tradeDiscountReceived,
 									getC_Currency_ID(), dAmt, null);
 						}
@@ -1000,10 +1103,10 @@ public class EPIDocInvoice extends Doc
 				landedCost = landedCost(as, fact, line, false);
 			if (landedCost && as.isExplicitCostAdjustment())
 			{
-				fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+				fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 					getC_Currency_ID(), null, line.getAmtSource());
 				//
-				fl = fact.createLine (line, line.getAccount(ProductCost.ACCTTYPE_P_Expense, as),
+				fl = fact.createLine (line, line.getAccount(EPIProductCost.ACCTTYPE_P_Expense, as),
 					getC_Currency_ID(), line.getAmtSource(), null);
 				String desc = line.getDescription();
 				if (desc == null)
@@ -1015,12 +1118,12 @@ public class EPIDocInvoice extends Doc
 			if (!landedCost)
 			{
 				MAccount acct = line.getAccount(
-					payables ? ProductCost.ACCTTYPE_P_Expense : ProductCost.ACCTTYPE_P_Revenue, as);
+					payables ? EPIProductCost.ACCTTYPE_P_Expense : EPIProductCost.ACCTTYPE_P_Revenue, as);
 				if (payables)
 				{
 					//	if Fixed Asset
 					if (line.isItem())
-						acct = line.getAccount (ProductCost.ACCTTYPE_P_InventoryClearing, as);
+						acct = line.getAccount (EPIProductCost.ACCTTYPE_P_InventoryClearing, as);
 				}
 				BigDecimal amt = line.getAmtSource().multiply(multiplier);
 				BigDecimal amt2 = null;
@@ -1124,7 +1227,7 @@ public class EPIDocInvoice extends Doc
 			BigDecimal drAmt = null;
 			BigDecimal crAmt = null;
 			MAccount account = null;
-			ProductCost pc = new ProductCost (Env.getCtx(),
+			EPIProductCost pc = new EPIProductCost (Env.getCtx(),
 					lca.getM_Product_ID(), lca.getM_AttributeSetInstance_ID(), getTrxName());
 			String costingMethod = pc.getProduct().getCostingMethod(as);
 			if (X_M_Cost.COSTINGMETHOD_AverageInvoice.equals(costingMethod) || X_M_Cost.COSTINGMETHOD_AveragePO.equals(costingMethod))
@@ -1282,7 +1385,7 @@ public class EPIDocInvoice extends Doc
 					{
 						drAmt = dr ? (reversal ? null : estimatedAmt): (reversal ? estimatedAmt : null);
 						crAmt = dr ? (reversal ? estimatedAmt : null): (reversal ? null : estimatedAmt);						
-						account = pc.getAccount(ProductCost.ACCTTYPE_P_LandedCostClearing, as);
+						account = pc.getAccount(EPIProductCost.ACCTTYPE_P_LandedCostClearing, as);
 						FactLine fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 						fl.setDescription(desc);
 						fl.setM_Product_ID(lca.getM_Product_ID());
@@ -1291,7 +1394,7 @@ public class EPIDocInvoice extends Doc
 						BigDecimal overAmt = allocationAmt.subtract(estimatedAmt);
 						drAmt = dr ? (reversal ? null : overAmt) : (reversal ? overAmt : null);
 						crAmt = dr ? (reversal ? overAmt : null) : (reversal ? null : overAmt);
-						account = zeroQty ? pc.getAccount(ProductCost.ACCTTYPE_P_AverageCostVariance, as) : pc.getAccount(ProductCost.ACCTTYPE_P_Asset, as);
+						account = zeroQty ? pc.getAccount(EPIProductCost.ACCTTYPE_P_AverageCostVariance, as) : pc.getAccount(EPIProductCost.ACCTTYPE_P_Asset, as);
 						fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 						fl.setDescription(desc);
 						fl.setM_Product_ID(lca.getM_Product_ID());
@@ -1301,7 +1404,7 @@ public class EPIDocInvoice extends Doc
 					{
 						drAmt = dr ? (reversal ? null : estimatedAmt) : (reversal ? estimatedAmt : null);
 						crAmt = dr ? (reversal ? estimatedAmt : null) : (reversal ? null : estimatedAmt);
-						account = pc.getAccount(ProductCost.ACCTTYPE_P_LandedCostClearing, as);
+						account = pc.getAccount(EPIProductCost.ACCTTYPE_P_LandedCostClearing, as);
 						FactLine fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 						fl.setDescription(desc);
 						fl.setM_Product_ID(lca.getM_Product_ID());
@@ -1310,7 +1413,7 @@ public class EPIDocInvoice extends Doc
 						BigDecimal underAmt = estimatedAmt.subtract(allocationAmt);
 						drAmt = dr ? (reversal ? underAmt : null) : (reversal ? null : underAmt);
 						crAmt = dr ? (reversal ? null : underAmt) : (reversal ? underAmt : null);
-						account = zeroQty ? pc.getAccount(ProductCost.ACCTTYPE_P_AverageCostVariance, as) : pc.getAccount(ProductCost.ACCTTYPE_P_Asset, as);
+						account = zeroQty ? pc.getAccount(EPIProductCost.ACCTTYPE_P_AverageCostVariance, as) : pc.getAccount(EPIProductCost.ACCTTYPE_P_Asset, as);
 						fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 						fl.setDescription(desc);
 						fl.setM_Product_ID(lca.getM_Product_ID());
@@ -1320,7 +1423,7 @@ public class EPIDocInvoice extends Doc
 					{
 						drAmt = dr ? (reversal ? null : allocationAmt) : (reversal ? allocationAmt : null);
 						crAmt = dr ? (reversal ? allocationAmt : null) : (reversal ? null : allocationAmt);
-						account = pc.getAccount(ProductCost.ACCTTYPE_P_LandedCostClearing, as);
+						account = pc.getAccount(EPIProductCost.ACCTTYPE_P_LandedCostClearing, as);
 						FactLine fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 						fl.setDescription(desc);
 						fl.setM_Product_ID(lca.getM_Product_ID());
@@ -1336,7 +1439,7 @@ public class EPIDocInvoice extends Doc
 					drAmt = lca.getAmt();
 				else
 					crAmt = lca.getAmt();
-				account = pc.getAccount(ProductCost.ACCTTYPE_P_CostAdjustment, as);
+				account = pc.getAccount(EPIProductCost.ACCTTYPE_P_CostAdjustment, as);
 				FactLine fl = fact.createLine (line, account, getC_Currency_ID(), drAmt, crAmt);
 				fl.setDescription(desc);
 				fl.setM_Product_ID(lca.getM_Product_ID());

@@ -1,24 +1,5 @@
 package org.epi.process;
 
-/******************************************************************************
- * Product: Adempiere ERP & CRM Smart Business Solution                       *
- * Copyright (C) 1999-2006 ComPiere, Inc. All Rights Reserved.                *
- * This program is free software; you can redistribute it and/or modify it    *
- * under the terms version 2 of the GNU General Public License as published   *
- * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
- * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program; if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-
-import static org.compiere.model.SystemIDs.TABLE_T_REPORT;
-
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -31,12 +12,11 @@ import java.util.logging.Level;
 import org.adempiere.util.ProcessUtil;
 import org.compiere.model.I_C_ValidCombination;
 import org.compiere.model.MAcctSchemaElement;
+import org.compiere.model.MOrg;
 import org.compiere.model.MPInstance;
 import org.compiere.model.MPeriod;
 import org.compiere.model.MProcess;
 import org.compiere.model.MReportCube;
-import org.compiere.print.MPrintFormat;
-import org.compiere.print.MPrintFormatItem;
 import org.compiere.process.ProcessInfo;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
@@ -52,6 +32,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.TimeUtil;
 import org.compiere.util.Trx;
+import org.epi.utils.FinalVariableGlobal;
 
 /**
  *  Financial Report Engine
@@ -1696,156 +1677,155 @@ public class EPIProcessFinancialJasper extends SvrProcess
 	 *	Get/Create PrintFormat
 	 * 	@return print format
 	 */
-	private MPrintFormat getPrintFormat()
-	{
-		int AD_PrintFormat_ID = m_report.getAD_PrintFormat_ID();
-		if (log.isLoggable(Level.INFO)) log.info("AD_PrintFormat_ID=" + AD_PrintFormat_ID);
-		MPrintFormat pf = null;
-		boolean createNew = AD_PrintFormat_ID == 0;
-
-		//	Create New
-		if (createNew)
-		{
-			int AD_Table_ID = TABLE_T_REPORT;		//	T_Report
-			pf = MPrintFormat.createFromTable(Env.getCtx(), AD_Table_ID);
-			AD_PrintFormat_ID = pf.getAD_PrintFormat_ID();
-			m_report.setAD_PrintFormat_ID(AD_PrintFormat_ID);
-			m_report.saveEx();
-		}
-		else
-			pf = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, false);	//	use Cache
-
-		//	Print Format Sync
-		if (!m_report.getName().equals(pf.getName())) {
-			pf.setName(m_report.getName());
-			MPrintFormat.setUniqueName(pf.getAD_Client_ID(), pf, pf.getName());
-		}
-		if (m_report.getDescription() == null)
-		{
-			if (pf.getDescription () != null)
-				pf.setDescription (null);
-		}
-		else if (!m_report.getDescription().equals(pf.getDescription()))
-			pf.setDescription(m_report.getDescription());
-		pf.saveEx();
-		if (log.isLoggable(Level.FINE)) log.fine(pf + " - #" + pf.getItemCount());
-
-		//	Print Format Item Sync
-		int count = pf.getItemCount();
-		for (int i = 0; i < count; i++)
-		{
-			MPrintFormatItem pfi = pf.getItem(i);
-			String ColumnName = pfi.getColumnName();
-			//
-			if (ColumnName == null)
-			{
-				log.log(Level.SEVERE, "No ColumnName for #" + i + " - " + pfi);
-				if (pfi.isPrinted())
-					pfi.setIsPrinted(false);
-				if (pfi.isOrderBy())
-					pfi.setIsOrderBy(false);
-				if (pfi.getSortNo() != 0)
-					pfi.setSortNo(0);
-			}
-			else if (ColumnName.startsWith("Col"))
-			{
-				int index = Integer.parseInt(ColumnName.substring(4));
-				if (index < m_columns.length)
-				{
-					pfi.setIsPrinted(m_columns[index].isPrinted());
-					String s = m_columns[index].get_Translation(MReportColumn.COLUMNNAME_Name);
-					
-					if (m_columns[index].isColumnTypeRelativePeriod())
-					{
-						BigDecimal relativeOffset = m_columns[index].getRelativePeriod();
-						FinReportPeriod frp = getPeriod (relativeOffset);
-					
-						if ( s.contains("@Period@") )
-							s = s.replace("@Period@", frp.getName() );
-					}
-					
-					if (!pfi.getName().equals(s))
-					{
-						pfi.setName (s);
-						pfi.setPrintName (s);
-					}
-					int seq = 30 + index;
-					if (pfi.getSeqNo() != seq)
-						pfi.setSeqNo(seq);
-					
-					s = m_columns[index].getFormatPattern();
-					pfi.setFormatPattern(s);
-				}
-				else	//	not printed
-				{
-					if (pfi.isPrinted())
-						pfi.setIsPrinted(false);
-				}
-				//	Not Sorted
-				if (pfi.isOrderBy())
-					pfi.setIsOrderBy(false);
-				if (pfi.getSortNo() != 0)
-					pfi.setSortNo(0);
-			}
-			else if (ColumnName.equals("SeqNo"))
-			{
-				if (pfi.isPrinted())
-					pfi.setIsPrinted(false);
-				if (!pfi.isOrderBy())
-					pfi.setIsOrderBy(true);
-				if (pfi.getSortNo() != 10)
-					pfi.setSortNo(10);
-			}
-			else if (ColumnName.equals("LevelNo"))
-			{
-				if (pfi.isPrinted())
-					pfi.setIsPrinted(false);
-				if (!pfi.isOrderBy())
-					pfi.setIsOrderBy(true);
-				if (pfi.getSortNo() != 20)
-					pfi.setSortNo(20);
-			}
-			else if (ColumnName.equals("Name"))
-			{
-				if (pfi.getSeqNo() != 10)
-					pfi.setSeqNo(10);
-				if (!pfi.isPrinted())
-					pfi.setIsPrinted(true);
-				if (!pfi.isOrderBy())
-					pfi.setIsOrderBy(true);
-				if (pfi.getSortNo() != 30)
-					pfi.setSortNo(30);
-			}
-			else if (ColumnName.equals("Description"))
-			{
-				if (pfi.getSeqNo() != 20)
-					pfi.setSeqNo(20);
-				if (!pfi.isPrinted())
-					pfi.setIsPrinted(true);
-				if (pfi.isOrderBy())
-					pfi.setIsOrderBy(false);
-				if (pfi.getSortNo() != 0)
-					pfi.setSortNo(0);
-			}
-			else	//	Not Printed, No Sort
-			{
-				if (pfi.isPrinted())
-					pfi.setIsPrinted(false);
-				if (pfi.isOrderBy())
-					pfi.setIsOrderBy(false);
-				if (pfi.getSortNo() != 0)
-					pfi.setSortNo(0);
-			}
-			pfi.saveEx();
-			if (log.isLoggable(Level.FINE)) log.fine(pfi.toString());
-		}
-		//	set translated to original
-		pf.setTranslation();
-		
-		// Reload to pick up changed pfi
-		pf = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, true);	//	no cache
-		return pf;
-	}	//	getPrintFormat
+//	private MPrintFormat getPrintFormat(){
+//		int AD_PrintFormat_ID = m_report.getAD_PrintFormat_ID();
+//		if (log.isLoggable(Level.INFO)) log.info("AD_PrintFormat_ID=" + AD_PrintFormat_ID);
+//		MPrintFormat pf = null;
+//		boolean createNew = AD_PrintFormat_ID == 0;
+//
+//		//	Create New
+//		if (createNew)
+//		{
+//			int AD_Table_ID = TABLE_T_REPORT;		//	T_Report
+//			pf = MPrintFormat.createFromTable(Env.getCtx(), AD_Table_ID);
+//			AD_PrintFormat_ID = pf.getAD_PrintFormat_ID();
+//			m_report.setAD_PrintFormat_ID(AD_PrintFormat_ID);
+//			m_report.saveEx();
+//		}
+//		else
+//			pf = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, false);	//	use Cache
+//
+//		//	Print Format Sync
+//		if (!m_report.getName().equals(pf.getName())) {
+//			pf.setName(m_report.getName());
+//			MPrintFormat.setUniqueName(pf.getAD_Client_ID(), pf, pf.getName());
+//		}
+//		if (m_report.getDescription() == null)
+//		{
+//			if (pf.getDescription () != null)
+//				pf.setDescription (null);
+//		}
+//		else if (!m_report.getDescription().equals(pf.getDescription()))
+//			pf.setDescription(m_report.getDescription());
+//		pf.saveEx();
+//		if (log.isLoggable(Level.FINE)) log.fine(pf + " - #" + pf.getItemCount());
+//
+//		//	Print Format Item Sync
+//		int count = pf.getItemCount();
+//		for (int i = 0; i < count; i++)
+//		{
+//			MPrintFormatItem pfi = pf.getItem(i);
+//			String ColumnName = pfi.getColumnName();
+//			//
+//			if (ColumnName == null)
+//			{
+//				log.log(Level.SEVERE, "No ColumnName for #" + i + " - " + pfi);
+//				if (pfi.isPrinted())
+//					pfi.setIsPrinted(false);
+//				if (pfi.isOrderBy())
+//					pfi.setIsOrderBy(false);
+//				if (pfi.getSortNo() != 0)
+//					pfi.setSortNo(0);
+//			}
+//			else if (ColumnName.startsWith("Col"))
+//			{
+//				int index = Integer.parseInt(ColumnName.substring(4));
+//				if (index < m_columns.length)
+//				{
+//					pfi.setIsPrinted(m_columns[index].isPrinted());
+//					String s = m_columns[index].get_Translation(MReportColumn.COLUMNNAME_Name);
+//					
+//					if (m_columns[index].isColumnTypeRelativePeriod())
+//					{
+//						BigDecimal relativeOffset = m_columns[index].getRelativePeriod();
+//						FinReportPeriod frp = getPeriod (relativeOffset);
+//					
+//						if ( s.contains("@Period@") )
+//							s = s.replace("@Period@", frp.getName() );
+//					}
+//					
+//					if (!pfi.getName().equals(s))
+//					{
+//						pfi.setName (s);
+//						pfi.setPrintName (s);
+//					}
+//					int seq = 30 + index;
+//					if (pfi.getSeqNo() != seq)
+//						pfi.setSeqNo(seq);
+//					
+//					s = m_columns[index].getFormatPattern();
+//					pfi.setFormatPattern(s);
+//				}
+//				else	//	not printed
+//				{
+//					if (pfi.isPrinted())
+//						pfi.setIsPrinted(false);
+//				}
+//				//	Not Sorted
+//				if (pfi.isOrderBy())
+//					pfi.setIsOrderBy(false);
+//				if (pfi.getSortNo() != 0)
+//					pfi.setSortNo(0);
+//			}
+//			else if (ColumnName.equals("SeqNo"))
+//			{
+//				if (pfi.isPrinted())
+//					pfi.setIsPrinted(false);
+//				if (!pfi.isOrderBy())
+//					pfi.setIsOrderBy(true);
+//				if (pfi.getSortNo() != 10)
+//					pfi.setSortNo(10);
+//			}
+//			else if (ColumnName.equals("LevelNo"))
+//			{
+//				if (pfi.isPrinted())
+//					pfi.setIsPrinted(false);
+//				if (!pfi.isOrderBy())
+//					pfi.setIsOrderBy(true);
+//				if (pfi.getSortNo() != 20)
+//					pfi.setSortNo(20);
+//			}
+//			else if (ColumnName.equals("Name"))
+//			{
+//				if (pfi.getSeqNo() != 10)
+//					pfi.setSeqNo(10);
+//				if (!pfi.isPrinted())
+//					pfi.setIsPrinted(true);
+//				if (!pfi.isOrderBy())
+//					pfi.setIsOrderBy(true);
+//				if (pfi.getSortNo() != 30)
+//					pfi.setSortNo(30);
+//			}
+//			else if (ColumnName.equals("Description"))
+//			{
+//				if (pfi.getSeqNo() != 20)
+//					pfi.setSeqNo(20);
+//				if (!pfi.isPrinted())
+//					pfi.setIsPrinted(true);
+//				if (pfi.isOrderBy())
+//					pfi.setIsOrderBy(false);
+//				if (pfi.getSortNo() != 0)
+//					pfi.setSortNo(0);
+//			}
+//			else	//	Not Printed, No Sort
+//			{
+//				if (pfi.isPrinted())
+//					pfi.setIsPrinted(false);
+//				if (pfi.isOrderBy())
+//					pfi.setIsOrderBy(false);
+//				if (pfi.getSortNo() != 0)
+//					pfi.setSortNo(0);
+//			}
+//			pfi.saveEx();
+//			if (log.isLoggable(Level.FINE)) log.fine(pfi.toString());
+//		}
+//		//	set translated to original
+//		pf.setTranslation();
+//		
+//		// Reload to pick up changed pfi
+//		pf = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, true);	//	no cache
+//		return pf;
+//	}	//	getPrintFormat
 	
 	
 	
@@ -1864,13 +1844,21 @@ public class EPIProcessFinancialJasper extends SvrProcess
 		ProcessInfoParameter oldpara[] = getParameter();
 		for (int i = 0; i < oldpara.length; i++)
 			list.add (oldpara[i]);
+		
+		
+		MOrg org = new MOrg(Env.getCtx(), p_Org_ID, null);
+		if(org.getValue().equals(FinalVariableGlobal.EPI)) {
 		// and add the T_Report_AD_PInstance_ID parameter
-		list.add (new ProcessInfoParameter("T_Report_AD_PInstance_ID", Integer.valueOf(getAD_PInstance_ID()), null, null, null));
-		list.add (new ProcessInfoParameter("Org_ID", p_Org_ID, null, null, null));
-		list.add (new ProcessInfoParameter("C_Period_ID", p_C_Period_ID, null, null, null));
-		list.add (new ProcessInfoParameter("C_BPartner_ID", p_C_BPartner_ID, null, null, null));
-		list.add (new ProcessInfoParameter("MonthColumn", p_MonthColumn, null, null, null));
-
+			list.add (new ProcessInfoParameter("T_Report_AD_PInstance_ID", Integer.valueOf(getAD_PInstance_ID()), null, null, null));
+			list.add (new ProcessInfoParameter("Org_ID", p_Org_ID, null, null, null));
+			list.add (new ProcessInfoParameter("C_Period_ID", p_C_Period_ID, null, null, null));
+			list.add (new ProcessInfoParameter("C_BPartner_ID", p_C_BPartner_ID, null, null, null));
+			list.add (new ProcessInfoParameter("MonthColumn", p_MonthColumn, null, null, null));
+		}else if(org.getValue().equals(FinalVariableGlobal.ISM)) {
+			list.add (new ProcessInfoParameter("AD_PInstance_ID", Integer.valueOf(getAD_PInstance_ID()), null, null, null));
+			list.add (new ProcessInfoParameter("C_Period_ID", p_C_Period_ID, null, null, null));
+			list.add (new ProcessInfoParameter("AD_Org_ID", p_Org_ID, null, null, null));
+		}
 
 		ProcessInfoParameter[] pars = new ProcessInfoParameter[list.size()];
 		list.toArray(pars);

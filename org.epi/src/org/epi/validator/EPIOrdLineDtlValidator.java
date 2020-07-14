@@ -24,10 +24,8 @@ public class EPIOrdLineDtlValidator {
 		
 		MOrg org = new MOrg(ordLineDtl.getCtx(), ordLineDtl.getAD_Org_ID(), null);
 
-		
-		if (event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)||event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_DELETE)) {
-			
-			if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)) {
+			if (event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)||event.getTopic().equals(IEventTopics.PO_AFTER_NEW)||event.getTopic().equals(IEventTopics.PO_AFTER_DELETE)) {			
 				msgOrdLineDtl = beforeSaveEPI(ordLineDtl);	
 			}
 			
