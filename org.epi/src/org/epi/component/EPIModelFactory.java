@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import org.adempiere.base.IModelFactory;
+import org.compiere.model.MInvoice;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
 import org.epi.model.I_C_OrderlineDtl;
@@ -42,8 +43,7 @@ public class EPIModelFactory implements IModelFactory{
 		mapTableModels.put(I_ISM_Budget_Line.Table_Name, "org.epi.model.X_ISM_Budget_Line");
 		mapTableModels.put(I_ISM_Budget_Transaction.Table_Name, "org.epi.model.X_ISM_Budget_Transaction");
 		mapTableModels.put(I_T_Report_Ledger.Table_Name, "org.epi.model.X_T_Report_Ledger");
-
-	
+		
 	}
 	
 	@Override
