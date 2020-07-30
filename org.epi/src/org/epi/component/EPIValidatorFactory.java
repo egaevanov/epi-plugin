@@ -3,6 +3,7 @@ package org.epi.component;
 import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventTopics;
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.I_C_ElementValue;
 import org.compiere.model.I_C_Invoice;
 import org.compiere.model.I_C_InvoiceLine;
 import org.compiere.model.I_C_Order;
@@ -11,6 +12,7 @@ import org.compiere.model.I_C_Payment;
 import org.compiere.model.I_GL_Journal;
 import org.compiere.model.I_M_InOut;
 import org.compiere.model.PO;
+import org.compiere.model.X_C_ElementValue;
 import org.compiere.model.X_C_Invoice;
 import org.compiere.model.X_C_InvoiceLine;
 import org.compiere.model.X_C_Order;
@@ -21,6 +23,7 @@ import org.compiere.model.X_M_InOut;
 import org.compiere.util.CLogger;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.X_C_OrderlineDtl;
+import org.epi.validator.EPIElementValueValidator;
 import org.epi.validator.EPIGLJournalValidator;
 import org.epi.validator.EPIInOutValidator;
 import org.epi.validator.EPIInvoiceLineValidator;
@@ -74,8 +77,9 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 			}else if(getPO(event).get_TableName().equals(I_C_Payment.Table_Name)) {
 				msg = EPIPaymentValidator.executePayment(event, getPO(event));
 			}else if(getPO(event).get_TableName().equals(I_GL_Journal.Table_Name)) {
-				msg = EPIGLJournalValidator.executeJournal(event, getPO(event));
-				
+				msg = EPIGLJournalValidator.executeJournal(event, getPO(event));		
+			}else if(getPO(event).get_TableName().equals(I_C_ElementValue.Table_Name)) {
+				msg = EPIElementValueValidator.executeElementValue(event, getPO(event));			
 			}
 
 			logEvent(event, getPO(event), msg);
@@ -120,6 +124,9 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_GL_Journal.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_GL_Journal.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, X_GL_Journal.Table_Name);
+		
+		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_ElementValue.Table_Name);
+		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_ElementValue.Table_Name);
 		
 	}
 	

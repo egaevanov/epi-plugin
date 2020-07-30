@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import org.adempiere.base.IModelFactory;
-import org.compiere.model.MInvoice;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
 import org.epi.model.I_C_OrderlineDtl;

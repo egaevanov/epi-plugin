@@ -75,10 +75,11 @@ public class ISMCreatePPH23 extends SvrProcess {
 			getPPh.append(" WHERE lower(name)='pph 23'");
 			getPPh.append(" AND AD_Client_ID =  "+payment.getAD_Client_ID());
 			Integer C_Charge_ID = DB.getSQLValueEx(get_TrxName(), getPPh.toString());
+						
+			if(C_Charge_ID < 0)
+				return"Charge PPh 23 Belum Terdaftar";
 			
 			MPayment payPPh = new MPayment(getCtx(), 0, invoice.get_TrxName());
-			
-		
 			payPPh.setAD_Org_ID(invoice.getAD_Org_ID());
 			payPPh.setIsReceipt(true);
 
@@ -94,8 +95,11 @@ public class ISMCreatePPH23 extends SvrProcess {
 			payPPh.setC_Charge_ID(C_Charge_ID);
 			payPPh.saveEx();
 			
-			payPPh.processIt("CO");
-			payPPh.saveEx();
+			if(payPPh.processIt("CO")) {
+				payPPh.saveEx();
+			}else {
+				rollback();
+			}
 		
 			
 			}
@@ -106,10 +110,6 @@ public class ISMCreatePPH23 extends SvrProcess {
 	}
 	
 	
-		
-		
-		
-		
 		return "";
 	}
 
