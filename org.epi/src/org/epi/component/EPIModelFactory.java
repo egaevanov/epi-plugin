@@ -16,6 +16,11 @@ import org.epi.model.I_ISM_Budget_Transaction;
 import org.epi.model.I_ISM_Department;
 import org.epi.model.I_M_InOutLineDtl;
 import org.epi.model.I_M_SaveInv;
+import org.epi.model.I_TBU_BAOperation;
+import org.epi.model.I_TBU_OperationEquipment;
+import org.epi.model.I_TBU_OperationEquipmentUnit;
+import org.epi.model.I_TBU_OperationLine;
+import org.epi.model.I_TBU_OperationService;
 import org.epi.model.I_T_Report_Ledger;
 
 /**
@@ -43,6 +48,14 @@ public class EPIModelFactory implements IModelFactory{
 		mapTableModels.put(I_ISM_Budget_Transaction.Table_Name, "org.epi.model.X_ISM_Budget_Transaction");
 		mapTableModels.put(I_T_Report_Ledger.Table_Name, "org.epi.model.X_T_Report_Ledger");
 		
+		//TBU Operation
+		mapTableModels.put(I_TBU_OperationEquipment.Table_Name, "org.epi.model.X_TBU_OperationEquipment");
+		mapTableModels.put(I_TBU_OperationEquipmentUnit.Table_Name, "org.epi.model.X_TBU_OperationEquipmentUnit");
+		mapTableModels.put(I_TBU_OperationService.Table_Name, "org.epi.model.X_TBU_OperationService");
+		mapTableModels.put(I_TBU_BAOperation.Table_Name, "org.epi.model.MBAOperation");
+		mapTableModels.put(I_TBU_OperationLine.Table_Name, "org.epi.model.X_TBU_OperationLine");
+
+
 	}
 	
 	@Override

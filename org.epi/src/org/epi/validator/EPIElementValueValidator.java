@@ -34,12 +34,14 @@ public class EPIElementValueValidator {
 		
 		if(event.getTopic().equals(IEventTopics.PO_AFTER_CHANGE)) {		
 
-			if(org.getValue().equals(FinalVariableGlobal.EPI)||org.getValue().equals(FinalVariableGlobal.ISM)) {	
+			if(org.getValue().equals(FinalVariableGlobal.EPI)||org.getValue().equals(FinalVariableGlobal.ISM)||
+			org.getValue().equals(FinalVariableGlobal.TBU)){	
 				msgelValue = afterSaveEPI(elValue);
 			}
 		}else if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
 			
-			if(org.getValue().equals(FinalVariableGlobal.EPI)||org.getValue().equals(FinalVariableGlobal.ISM)) {	
+			if(org.getValue().equals(FinalVariableGlobal.EPI)||org.getValue().equals(FinalVariableGlobal.ISM)||
+			org.getValue().equals(FinalVariableGlobal.TBU)) {	
 				msgelValue = afterNewEPI(elValue);
 			}
 		}	

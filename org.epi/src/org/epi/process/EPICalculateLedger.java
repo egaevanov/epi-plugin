@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.logging.Level;
 
 import org.compiere.model.MBankStatement;
+import org.compiere.model.MElementValue;
 import org.compiere.model.MOrg;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
@@ -24,6 +25,10 @@ public class EPICalculateLedger extends SvrProcess{
 	
 	private String p_AccountNo = "";
 	private String p_AccountNoTo = "";
+	
+	private boolean p_IsListAccount = false;
+	private int p_C_ElementValue_ID = 0;
+	private int p_C_ElementValueTo_ID = 0;
 
 	private int p_ad_org_id = 0;
 	private MOrg org = null;	
@@ -47,6 +52,12 @@ public class EPICalculateLedger extends SvrProcess{
 			}else if (name.equals("AccountNo")) {
 				p_AccountNo = para[i].getParameterAsString();
 				p_AccountNoTo = (String) para[i].getParameter_To();
+			}else if (name.equals("IsListAccount")) {
+				p_IsListAccount = para[i].getParameterAsBoolean();
+			}else if (name.equals("C_ElementValue_ID")) {
+				p_C_ElementValue_ID = para[i].getParameterAsInt();
+				p_C_ElementValueTo_ID = para[i].getParameter_ToAsInt();
+
 			}else
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
 		}
@@ -91,12 +102,27 @@ public class EPICalculateLedger extends SvrProcess{
 		SQLAccountDetect.append(" INNER JOIN c_elementvalue ce on ce.c_elementvalue_id = fa.account_id" );
 		SQLAccountDetect.append(" WHERE fa.ad_client_id = ? ");
 		SQLAccountDetect.append(" AND fa.ad_org_id = ? ");
-		SQLAccountDetect.append(" AND fa.dateacct BETWEEN '"+p_dateAcct+"' AND '"+p_dateAcctTo+"'");	
-		if(p_AccountNo !=  null && p_AccountNoTo != null && !p_AccountNoTo.isEmpty()) {
-			SQLAccountDetect.append(" AND ce.value::numeric BETWEEN "+p_AccountNo+" AND "+p_AccountNoTo);
-		}else if(p_AccountNo !=  null && p_AccountNoTo.isEmpty()) {
-			SQLAccountDetect.append(" AND ce.value = '"+p_AccountNo+"'");
-		}	
+		SQLAccountDetect.append(" AND fa.dateacct BETWEEN '"+p_dateAcct+"' AND '"+p_dateAcctTo+"'");
+		
+		if(!p_IsListAccount) {
+			if(p_AccountNo !=  null && p_AccountNoTo != null && !p_AccountNoTo.isEmpty()) {
+				SQLAccountDetect.append(" AND ce.value::numeric BETWEEN "+p_AccountNo+" AND "+p_AccountNoTo);
+			}else if(p_AccountNo !=  null && p_AccountNoTo.isEmpty()) {
+				SQLAccountDetect.append(" AND ce.value = '"+p_AccountNo+"'");
+			}
+		}else if(p_IsListAccount) {
+			if(p_C_ElementValue_ID >  0 && p_C_ElementValueTo_ID >0) {
+				
+				MElementValue AccountFrom = new MElementValue(getCtx(), p_C_ElementValue_ID, get_TrxName());
+				MElementValue AccountFromTo = new MElementValue(getCtx(), p_C_ElementValueTo_ID, get_TrxName());
+
+				SQLAccountDetect.append(" AND ce.value::numeric BETWEEN "+AccountFrom.getValue()+" AND "+AccountFromTo.getValue());
+			}else if(p_C_ElementValue_ID >  0 && p_C_ElementValueTo_ID <= 0) {
+				MElementValue AccountFrom = new MElementValue(getCtx(), p_C_ElementValue_ID, get_TrxName());
+
+				SQLAccountDetect.append(" AND ce.value = '"+AccountFrom.getValue()+"'");
+			}
+		}
 		SQLAccountDetect.append(" Order by ce.value asc");	
 
 		
@@ -113,7 +139,18 @@ public class EPICalculateLedger extends SvrProcess{
 		
 		//SQLtrx	
 		StringBuilder SQLTrx = new StringBuilder();
-		SQLTrx.append("SELECT org.ad_org_id, org.name as orgname,tab.tablename,fa.record_id,ce.value as account,ce.name,coalesce(fa.amtacctcr,0),coalesce(fa.amtacctdr,0),ce.c_elementvalue_id,fa.dateacct,ce.value::numeric ");
+		SQLTrx.append("SELECT org.ad_org_id, "
+				+ "org.name as orgname,"
+				+ "tab.tablename,"
+				+ "fa.record_id,"
+				+ "ce.value as account,"
+				+ "ce.name,"
+				+ "coalesce(fa.amtacctcr,0),"
+				+ "coalesce(fa.amtacctdr,0),"
+				+ "ce.c_elementvalue_id,"
+				+ "fa.dateacct,"
+				+ "ce.value::numeric, "
+				+ "fa.line_id ");
 		SQLTrx.append(" FROM fact_acct fa");
 		SQLTrx.append(" INNER JOIN ad_table tab on tab.ad_table_id = fa.ad_table_id");
 		SQLTrx.append(" INNER JOIN ad_org org  on org.ad_org_id = fa.ad_org_id");
@@ -180,6 +217,7 @@ public class EPICalculateLedger extends SvrProcess{
 							while (rs.next()) {
 
 								//System.out.println(rs.getInt(1));
+								int line_id = rs.getInt(12);
 								
 								X_T_Report_Ledger ledger = new X_T_Report_Ledger(getCtx(), null, get_TrxName());
 								ledger.setAD_Org_ID(p_ad_org_id);
@@ -202,10 +240,23 @@ public class EPICalculateLedger extends SvrProcess{
 								
 								StringBuilder SQLGetDesc = new StringBuilder();
 								SQLGetDesc.append("SELECT Description");
-								SQLGetDesc.append(" FROM "+rs.getString(3));
-								SQLGetDesc.append(" WHERE ad_client_id = "+getAD_Client_ID());
-								SQLGetDesc.append(" AND "+rs.getString(3)+"_ID =" + rs.getInt(4));
 								
+								if(line_id > 0) {
+									SQLGetDesc.append(" FROM "+rs.getString(3)+"Line");
+
+								}else {
+									SQLGetDesc.append(" FROM "+rs.getString(3));
+
+								}
+								
+								SQLGetDesc.append(" WHERE ad_client_id = "+getAD_Client_ID());
+								
+								if(line_id > 0) {
+									SQLGetDesc.append(" AND "+rs.getString(3)+"Line_ID =" + rs.getInt(12));
+								}else {
+									SQLGetDesc.append(" AND "+rs.getString(3)+"_ID =" + rs.getInt(4));
+
+								}
 								//System.out.println("SQL -->"+ SQLGetDocNo.toString());
 								String documentno = DB.getSQLValueStringEx(get_TrxName(), SQLGetDocNo.toString());	
 								String description = DB.getSQLValueStringEx(get_TrxName(), SQLGetDesc.toString());	

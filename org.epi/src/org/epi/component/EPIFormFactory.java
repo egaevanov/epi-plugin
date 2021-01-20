@@ -19,7 +19,7 @@ protected transient CLogger log = CLogger.getCLogger(getClass());
 @Override
 public ADForm newFormInstance(String formName) {
 	 Object form = null;
-     if (formName.startsWith("org.epi.createfrom")){
+     if (formName.startsWith("org.epi.createfrom")|| formName.startsWith("org.epi.form")){
            ClassLoader cl = getClass().getClassLoader();
            Class<?> clazz = null; 
 	  try 

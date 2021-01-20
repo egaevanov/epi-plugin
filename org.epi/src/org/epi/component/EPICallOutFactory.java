@@ -9,6 +9,7 @@ import org.compiere.model.I_C_Invoice;
 import org.compiere.model.I_C_OrderLine;
 import org.compiere.model.I_M_InOutLine;
 import org.compiere.model.I_M_RequisitionLine;
+import org.epi.callout.CallOutBAOperationLine;
 import org.epi.callout.CallOutInOutLine;
 import org.epi.callout.CallOutInvoice;
 import org.epi.callout.CallOutMaterialSave;
@@ -21,6 +22,7 @@ import org.epi.model.I_C_InvoiceLineDtl;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.I_M_InOutLineDtl;
 import org.epi.model.I_M_SaveInv;
+import org.epi.model.I_TBU_OperationLine;
 
 /**
  * 
@@ -52,6 +54,8 @@ public class EPICallOutFactory implements IColumnCalloutFactory {
 			list.add(new CallOutOrderLine());
 		}else if(tableName.equals(I_C_Invoice.Table_Name)) {
 			list.add(new CallOutInvoice());
+		}else if(tableName.equals(I_TBU_OperationLine.Table_Name)) {
+			list.add(new CallOutBAOperationLine());
 		}
 
 		

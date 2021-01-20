@@ -1,0 +1,36 @@
+package org.epi.utils;
+
+import org.compiere.util.DB;
+
+public class DataSetupValidation {
+	
+	
+public static boolean IsValidDataMaster(int AD_Client_ID, int AD_Org_ID,String TableName,String ColumnName, String Value){
+		
+		boolean rs = true;
+		
+		StringBuilder SQLCheck = new StringBuilder();
+		SQLCheck.append("SELECT "+TableName+"_ID");
+		SQLCheck.append(" FROM "+TableName);
+		SQLCheck.append(" WHERE AD_Client_ID = "+ AD_Client_ID );
+		SQLCheck.append(" AND AD_Org_ID = "+ AD_Org_ID );
+		SQLCheck.append(" AND "+ ColumnName + " ='"+Value+"'");
+
+		Integer rslt = DB.getSQLValueEx(null, SQLCheck.toString());
+		
+		if(rslt < 0 || rslt == null){
+			
+			rslt = 0;
+			
+		}
+		
+		if(rslt > 0){
+			rs = false;
+		}
+		
+		return rs;
+		
+	}
+	
+
+}

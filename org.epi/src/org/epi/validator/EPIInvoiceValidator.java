@@ -40,6 +40,16 @@ public class EPIInvoiceValidator {
 					msgInv = beforeSaveEPI(Invoice);
 			}
 			
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.TBU)) {
+			
+			if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
+				msgInv = beforeSaveTBU(Invoice);
+			}else if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {	
+				msgInv = beforeCompleteTBU(Invoice);	
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
+				msgInv = beforeReverseTBU(Invoice);
+		}
+			
 		}
 			
 	return msgInv;
@@ -80,6 +90,30 @@ public class EPIInvoiceValidator {
 		
 	}
 	
+	
+	private static String beforeCompleteTBU(MInvoice Inv) {
+
+		String rslt = "";
+		
+		
+		StringBuilder SQLUpdateBAOperation = new StringBuilder();
+		SQLUpdateBAOperation.append("UPDATE TBU_BAOperation");
+		SQLUpdateBAOperation.append(" SET IsInvoiced = 'Y' ");
+		SQLUpdateBAOperation.append(" WHERE AD_Client_ID = ? ");
+		SQLUpdateBAOperation.append(" AND IsActive = 'Y' ");
+		SQLUpdateBAOperation.append(" AND IsInvoiced = 'N' ");
+		SQLUpdateBAOperation.append(" AND C_Invoice_ID = ? ");
+
+		
+		if(Inv.isSOTrx() && !Inv.isReversal()) {	
+			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());
+		}else if(!Inv.isSOTrx() && !Inv.isReversal()) {
+			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());			
+		}
+	
+		return rslt;
+		
+	}
 	
 	private static String beforeReverseEPI(MInvoice Inv) {
 
@@ -125,6 +159,29 @@ public class EPIInvoiceValidator {
 			}
 			
 			
+		}
+		
+		return rslt;
+		
+	}
+	
+	private static String beforeReverseTBU(MInvoice Inv) {
+
+		String rslt = "";
+		
+		StringBuilder SQLUpdateBAOperation = new StringBuilder();
+		SQLUpdateBAOperation.append("UPDATE TBU_BAOperation");
+		SQLUpdateBAOperation.append(" SET IsInvoiced = 'N' , C_Invoice_ID = null");
+		SQLUpdateBAOperation.append(" WHERE AD_Client_ID = ? ");
+		SQLUpdateBAOperation.append(" AND IsActive = 'Y' ");
+		SQLUpdateBAOperation.append(" AND IsInvoiced = 'Y' ");
+		SQLUpdateBAOperation.append(" AND C_Invoice_ID = ? ");
+
+		
+		if(Inv.isSOTrx() && !Inv.isReversal()) {	
+			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());
+		}else if(!Inv.isSOTrx() && !Inv.isReversal()) {
+			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());			
 		}
 		
 		return rslt;
@@ -299,4 +356,29 @@ public class EPIInvoiceValidator {
 		
 	}
 	
+	
+	
+	private static String beforeSaveTBU(MInvoice Inv) {
+
+		
+		String rslt = "";
+		
+		if(Inv.isSOTrx()) {
+			
+			StringBuilder FuncFormatDocNo = new StringBuilder();
+			FuncFormatDocNo.append("select  f_update_docno_invcust(c_invoice_id,c_doctypetarget_id) ");
+			FuncFormatDocNo.append(" from  c_invoice");
+			FuncFormatDocNo.append(" where  c_invoice_id = "+Inv.getC_Invoice_ID());
+			
+			Integer rs = DB.executeUpdate(FuncFormatDocNo.toString(), true, Inv.get_TrxName());
+			
+			if(rs == 0) {
+				rslt = "Error";
+			}
+		}
+		
+		
+		return rslt;
+		
+	}
 }

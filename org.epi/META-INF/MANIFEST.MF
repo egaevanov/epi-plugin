@@ -13,7 +13,8 @@ Require-Bundle: org.adempiere.base;bundle-version="6.2.0",
  zk;bundle-version="8.6.0",
  zul;bundle-version="8.6.0",
  com.itextpdf;bundle-version="5.5.13",
- org.apache.poi.poi-ooxml;bundle-version="3.15.0"
+ org.apache.poi.poi-ooxml;bundle-version="3.15.0",
+ com.google.gson;bundle-version="2.2.4"
 Import-Package: org.apache.tools.ant.types.optional.image,
  org.osgi.framework;version="1.8.0",
  org.zkoss.image
@@ -26,7 +27,6 @@ Export-Package: org.epi.acct,
  org.epi.utils,
  org.epi.validator
 Bundle-Activator: org.adempiere.plugin.utils.AdempiereActivator
-Bundle-ActivationPolicy: lazy
 Service-Component: OSGI-INF/EPIProcessFactory.xml,
  OSGI-INF/EPIValidatorFactory.xml,
  OSGI-INF/EPIFormFactory.xml,
