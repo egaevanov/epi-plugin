@@ -46,9 +46,10 @@ public class EPIInvoiceValidator {
 				msgInv = beforeSaveTBU(Invoice);
 			}else if (event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {	
 				msgInv = beforeCompleteTBU(Invoice);	
-			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT)) {
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT) || event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSEACCRUAL) ||
+					event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)) {
 				msgInv = beforeReverseTBU(Invoice);
-		}
+			}
 			
 		}
 			
@@ -174,7 +175,6 @@ public class EPIInvoiceValidator {
 		SQLUpdateBAOperation.append(" SET IsInvoiced = 'N' , C_Invoice_ID = null");
 		SQLUpdateBAOperation.append(" WHERE AD_Client_ID = ? ");
 		SQLUpdateBAOperation.append(" AND IsActive = 'Y' ");
-		SQLUpdateBAOperation.append(" AND IsInvoiced = 'Y' ");
 		SQLUpdateBAOperation.append(" AND C_Invoice_ID = ? ");
 
 		

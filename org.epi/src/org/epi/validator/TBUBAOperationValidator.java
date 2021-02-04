@@ -22,6 +22,8 @@ public class TBUBAOperationValidator {
 		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.TBU)) {
 			if (event.getTopic().equals(IEventTopics.DOC_BEFORE_REACTIVATE)) {
 				msgBAOp = beforeReActiveTBU(OpLine,event);	
+			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)) {
+				msgBAOp = beforeVoidTBU(OpLine,event);	
 			}
 		}
 	return msgBAOp;
@@ -31,16 +33,22 @@ public class TBUBAOperationValidator {
 	
 	private static String beforeReActiveTBU(X_TBU_BAOperation BAOp,Event event) {
 		
-	
-		
-		if(BAOp.isInvoiced()) {
+		if(BAOp.isInvoiced() || BAOp.getC_Invoice_ID() > 0) {
 			
-			return "Document Cant Re-Activated Because Already Invoiced";
+			return "Document Cant Re-Activated Because Already Invoiced Or Related with Invoice";
 		}
 		
 		return"";
 	}
 	
-	
+	private static String beforeVoidTBU(X_TBU_BAOperation BAOp,Event event) {
+		
+		if(BAOp.isInvoiced() || BAOp.getC_Invoice_ID() > 0) {
+			
+			return "Document Cant Void Because Already Invoiced Or Related with Invoice";
+		}
+		
+		return"";
+	}
 
 }

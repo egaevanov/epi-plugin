@@ -27,7 +27,8 @@ public class TBUProcessCreateInvoiceFromOperationCost extends SvrProcess{
 	private Timestamp p_EndDate = null;
 	private int p_C_Activity_ID = 0;
 	private int p_C_Invoice_ID = 0;
-
+	private int p_C_Project_ID = 0;
+	private int p_ISM_Department_ID = 0;
 	@Override
 	protected void prepare() {
 		
@@ -46,6 +47,10 @@ public class TBUProcessCreateInvoiceFromOperationCost extends SvrProcess{
 				p_EndDate  = (Timestamp)para[i].getParameterAsTimestamp();
 			else if(name.equals("C_Activity_ID"))
 				p_C_Activity_ID = (int)para[i].getParameterAsInt();
+			else if(name.equals("C_Project_ID"))
+				p_C_Project_ID= (int)para[i].getParameterAsInt();
+			else if(name.equals("ISM_Department_ID"))
+				p_ISM_Department_ID = (int)para[i].getParameterAsInt();
 		
 			else
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
@@ -80,6 +85,14 @@ public class TBUProcessCreateInvoiceFromOperationCost extends SvrProcess{
 		if(p_C_Activity_ID > 0) {
 			SQLGetData.append(" AND C_Activity_ID = ?");
 		}
+		
+		if(p_C_Project_ID > 0) {
+			SQLGetData.append(" AND C_Project_ID = ?");
+		}
+
+		if(p_ISM_Department_ID > 0) {
+			SQLGetData.append(" AND ISM_Department_ID = ?");
+		}
 
 		
 		BigDecimal SumGrandTotal = Env.ZERO;
@@ -102,11 +115,18 @@ public class TBUProcessCreateInvoiceFromOperationCost extends SvrProcess{
 				pstmt.setInt(1,p_C_BPartner_ID);	
 				pstmt.setInt(2,C_DocType_ID);	
 				if(p_C_Activity_ID > 0) {
-
 					pstmt.setInt(3,p_C_Activity_ID);	
 				}
+				if(p_C_Project_ID > 0) {
+					pstmt.setInt(4,p_C_Project_ID);	
+				}
+				if(p_ISM_Department_ID > 0) {
+					pstmt.setInt(5,p_ISM_Department_ID);	
+				}
 				rs = pstmt.executeQuery();
+				int rowCountIndex = 0;
 				while (rs.next()) {
+					rowCountIndex++;
 					
 					X_TBU_BAOperation BAOp = new X_TBU_BAOperation(getCtx(), rs.getInt(1), get_TrxName());
 					BAOp.setC_Invoice_ID(invoice.getC_Invoice_ID());
@@ -124,6 +144,11 @@ public class TBUProcessCreateInvoiceFromOperationCost extends SvrProcess{
 														
 				}
 
+				
+			if(rowCountIndex == 0) {
+				
+				return "Tidak Ada Data BA Operation yang Tergenerate";
+			}	
 			invoice.setGrandTotal(SumGrandTotal);	
 			invoice.saveEx();
 			

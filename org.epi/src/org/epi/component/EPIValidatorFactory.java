@@ -22,9 +22,13 @@ import org.compiere.model.X_GL_Journal;
 import org.compiere.model.X_M_InOut;
 import org.compiere.util.CLogger;
 import org.epi.model.I_C_OrderlineDtl;
+import org.epi.model.I_C_Quotation;
+import org.epi.model.I_C_QuotationLine;
 import org.epi.model.I_TBU_BAOperation;
 import org.epi.model.I_TBU_OperationLine;
 import org.epi.model.X_C_OrderlineDtl;
+import org.epi.model.X_C_Quotation;
+import org.epi.model.X_C_QuotationLine;
 import org.epi.model.X_TBU_BAOperation;
 import org.epi.model.X_TBU_OperationLine;
 import org.epi.validator.EPIElementValueValidator;
@@ -36,6 +40,7 @@ import org.epi.validator.EPIOrdLineDtlValidator;
 import org.epi.validator.EPIOrderLineValidator;
 import org.epi.validator.EPIOrderValidator;
 import org.epi.validator.EPIPaymentValidator;
+import org.epi.validator.ISMQuotationLineValidator;
 import org.epi.validator.TBUBAOperationLineValidator;
 import org.epi.validator.TBUBAOperationValidator;
 import org.osgi.service.event.Event;
@@ -90,6 +95,8 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 				msg = TBUBAOperationLineValidator.executeTBUOpLine(event, getPO(event));			
 			}else if(getPO(event).get_TableName().equals(I_TBU_BAOperation.Table_Name)) {
 				msg = TBUBAOperationValidator.executeTBUBAOperation(event, getPO(event));			
+			}else if(getPO(event).get_TableName().equals(I_C_QuotationLine.Table_Name)) {
+				msg = ISMQuotationLineValidator.executeISMQuotationLine(event, getPO(event));			
 			}
 
 			logEvent(event, getPO(event), msg);
@@ -117,6 +124,8 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 			
 		registerTableEvent(IEventTopics.DOC_AFTER_COMPLETE, X_C_Invoice.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_REVERSECORRECT, X_C_Invoice.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_REVERSEACCRUAL, X_C_Invoice.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_VOID, X_C_Invoice.Table_Name);
 		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, X_C_Invoice.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_Invoice.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_Invoice.Table_Name);
@@ -141,9 +150,12 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 		
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_TBU_OperationLine.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_TBU_OperationLine.Table_Name);
-		
-		
+			
 		registerTableEvent(IEventTopics.DOC_BEFORE_REACTIVATE, X_TBU_BAOperation.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_VOID, X_TBU_BAOperation.Table_Name);
+
+		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_QuotationLine.Table_Name);
+		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_QuotationLine.Table_Name);
 		
 	}
 	

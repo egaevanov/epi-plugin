@@ -15,6 +15,8 @@ import org.epi.callout.CallOutInvoice;
 import org.epi.callout.CallOutMaterialSave;
 import org.epi.callout.CallOutOrderLine;
 import org.epi.callout.CallOutOrderLineDetail;
+import org.epi.callout.CallOutQuotation;
+import org.epi.callout.CallOutQuotationLine;
 import org.epi.callout.CallOutRequisitionLine;
 import org.epi.callout.CallOutInvoiceLineDetail;
 import org.epi.callout.CallOutShipmentLineDetail;
@@ -23,6 +25,8 @@ import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.I_M_InOutLineDtl;
 import org.epi.model.I_M_SaveInv;
 import org.epi.model.I_TBU_OperationLine;
+import org.epi.model.X_C_Quotation;
+import org.epi.model.X_C_QuotationLine;
 
 /**
  * 
@@ -56,7 +60,12 @@ public class EPICallOutFactory implements IColumnCalloutFactory {
 			list.add(new CallOutInvoice());
 		}else if(tableName.equals(I_TBU_OperationLine.Table_Name)) {
 			list.add(new CallOutBAOperationLine());
+		}else if(tableName.equals(X_C_Quotation.Table_Name)) {
+			list.add(new CallOutQuotation());
+		}else if(tableName.equals(X_C_QuotationLine.Table_Name)) {
+			list.add(new CallOutQuotationLine());
 		}
+
 
 		
 		return list != null ? list.toArray(new IColumnCallout[0])

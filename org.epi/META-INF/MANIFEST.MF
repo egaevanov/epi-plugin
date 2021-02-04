@@ -36,3 +36,4 @@ Service-Component: OSGI-INF/EPIProcessFactory.xml,
  OSGI-INF/EPICreateFromFactory.xml
 Bundle-Vendor: PT. Integra Solusi Mandiri
 Automatic-Module-Name: org.epi
+Bundle-ActivationPolicy: lazy

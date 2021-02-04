@@ -9,6 +9,8 @@ import org.adempiere.base.IModelFactory;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
 import org.epi.model.I_C_OrderlineDtl;
+import org.epi.model.I_C_Quotation;
+import org.epi.model.I_C_QuotationLine;
 import org.epi.model.I_ISM_Activity;
 import org.epi.model.I_ISM_Budget_Line;
 import org.epi.model.I_ISM_Budget_Planning;
@@ -55,6 +57,8 @@ public class EPIModelFactory implements IModelFactory{
 		mapTableModels.put(I_TBU_BAOperation.Table_Name, "org.epi.model.MBAOperation");
 		mapTableModels.put(I_TBU_OperationLine.Table_Name, "org.epi.model.X_TBU_OperationLine");
 
+		mapTableModels.put(I_C_Quotation.Table_Name, "org.epi.model.X_C_Quotation");
+		mapTableModels.put(I_C_QuotationLine.Table_Name, "org.epi.model.X_C_QuotationLine");
 
 	}
 	

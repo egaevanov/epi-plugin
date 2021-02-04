@@ -35,10 +35,8 @@ public class EPICalculateFinalInvoice {
 		getRelationData.append(" AND ci.IsPaid = 'Y'");
 		getRelationData.append(" AND cp.C_Payment_ID IS NOT NULL ");
 		getRelationData.append(" AND ci.C_Invoice_ID NOT IN ("+C_Invoice_ID+")");
-
 		
 		rs =  DB.getSQLValueEx(null,  getRelationData.toString(), new Object[] {AD_Client_ID,C_Order_ID});
-		
 		
 		return rs;
 	}

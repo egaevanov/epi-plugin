@@ -141,7 +141,8 @@ public class MBAOperation extends X_TBU_BAOperation implements DocAction, DocOpt
 				|| DOCSTATUS_Invalid.equals(getDocStatus())
 				|| DOCSTATUS_InProgress.equals(getDocStatus())
 				|| DOCSTATUS_Approved.equals(getDocStatus())
-				|| DOCSTATUS_NotApproved.equals(getDocStatus()) ){
+				|| DOCSTATUS_NotApproved.equals(getDocStatus())
+				|| DOCSTATUS_Completed.equals(getDocStatus())){
 		
 		
 		
@@ -159,7 +160,7 @@ public class MBAOperation extends X_TBU_BAOperation implements DocAction, DocOpt
 			
 				m_processMsg = "Document Closed: " + getDocStatus();
 				return false;
-			}
+		}
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
 		if (m_processMsg != null)
