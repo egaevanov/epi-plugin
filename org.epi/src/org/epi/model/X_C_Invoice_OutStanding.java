@@ -24,28 +24,39 @@ import java.util.Properties;
 import org.compiere.model.*;
 import org.compiere.util.Env;
 
-/** Generated Model for TBU_BAOperation
+/** Generated Model for C_Invoice_OutStanding
  *  @author iDempiere (generated) 
  *  @version Release 6.2 - $Id$ */
-public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persistent 
+public class X_C_Invoice_OutStanding extends PO implements I_C_Invoice_OutStanding, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20210210L;
+	private static final long serialVersionUID = 20210324L;
 
     /** Standard Constructor */
-    public X_TBU_BAOperation (Properties ctx, int TBU_BAOperation_ID, String trxName)
+    public X_C_Invoice_OutStanding (Properties ctx, int C_Invoice_OutStanding_ID, String trxName)
     {
-      super (ctx, TBU_BAOperation_ID, trxName);
-      /** if (TBU_BAOperation_ID == 0)
+      super (ctx, C_Invoice_OutStanding_ID, trxName);
+      /** if (C_Invoice_OutStanding_ID == 0)
         {
+			setC_BPartner_ID (0);
+			setC_DocType_ID (0);
+			setC_Invoice_OutStanding_ID (0);
+			setC_PaymentTerm_ID (0);
+			setDateAcct (new Timestamp( System.currentTimeMillis() ));
+			setDateInvoiced (new Timestamp( System.currentTimeMillis() ));
+			setDocStatus (null);
+// DR
+			setDocumentNo (null);
+			setIsPaid (false);
+			setIsSOTrx (false);
         } */
     }
 
     /** Load Constructor */
-    public X_TBU_BAOperation (Properties ctx, ResultSet rs, String trxName)
+    public X_C_Invoice_OutStanding (Properties ctx, ResultSet rs, String trxName)
     {
       super (ctx, rs, trxName);
     }
@@ -67,7 +78,7 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 
     public String toString()
     {
-      StringBuffer sb = new StringBuffer ("X_TBU_BAOperation[")
+      StringBuffer sb = new StringBuffer ("X_C_Invoice_OutStanding[")
         .append(get_ID()).append("]");
       return sb.toString();
     }
@@ -112,9 +123,9 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 	public void setC_BPartner_ID (int C_BPartner_ID)
 	{
 		if (C_BPartner_ID < 1) 
-			set_Value (COLUMNNAME_C_BPartner_ID, null);
+			set_ValueNoCheck (COLUMNNAME_C_BPartner_ID, null);
 		else 
-			set_Value (COLUMNNAME_C_BPartner_ID, Integer.valueOf(C_BPartner_ID));
+			set_ValueNoCheck (COLUMNNAME_C_BPartner_ID, Integer.valueOf(C_BPartner_ID));
 	}
 
 	/** Get Business Partner .
@@ -140,9 +151,9 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 	public void setC_DocType_ID (int C_DocType_ID)
 	{
 		if (C_DocType_ID < 0) 
-			set_Value (COLUMNNAME_C_DocType_ID, null);
+			set_ValueNoCheck (COLUMNNAME_C_DocType_ID, null);
 		else 
-			set_Value (COLUMNNAME_C_DocType_ID, Integer.valueOf(C_DocType_ID));
+			set_ValueNoCheck (COLUMNNAME_C_DocType_ID, Integer.valueOf(C_DocType_ID));
 	}
 
 	/** Get Document Type.
@@ -156,29 +167,63 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return ii.intValue();
 	}
 
-	public org.compiere.model.I_C_Invoice getC_Invoice() throws RuntimeException
-    {
-		return (org.compiere.model.I_C_Invoice)MTable.get(getCtx(), org.compiere.model.I_C_Invoice.Table_Name)
-			.getPO(getC_Invoice_ID(), get_TrxName());	}
-
-	/** Set Invoice.
-		@param C_Invoice_ID 
-		Invoice Identifier
-	  */
-	public void setC_Invoice_ID (int C_Invoice_ID)
+	/** Set Invoice Outstanding.
+		@param C_Invoice_OutStanding_ID Invoice Outstanding	  */
+	public void setC_Invoice_OutStanding_ID (int C_Invoice_OutStanding_ID)
 	{
-		if (C_Invoice_ID < 1) 
-			set_Value (COLUMNNAME_C_Invoice_ID, null);
+		if (C_Invoice_OutStanding_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_C_Invoice_OutStanding_ID, null);
 		else 
-			set_Value (COLUMNNAME_C_Invoice_ID, Integer.valueOf(C_Invoice_ID));
+			set_ValueNoCheck (COLUMNNAME_C_Invoice_OutStanding_ID, Integer.valueOf(C_Invoice_OutStanding_ID));
 	}
 
-	/** Get Invoice.
-		@return Invoice Identifier
-	  */
-	public int getC_Invoice_ID () 
+	/** Get Invoice Outstanding.
+		@return Invoice Outstanding	  */
+	public int getC_Invoice_OutStanding_ID () 
 	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_C_Invoice_ID);
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Invoice_OutStanding_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set C_Invoice_OutStanding_UU.
+		@param C_Invoice_OutStanding_UU C_Invoice_OutStanding_UU	  */
+	public void setC_Invoice_OutStanding_UU (String C_Invoice_OutStanding_UU)
+	{
+		set_ValueNoCheck (COLUMNNAME_C_Invoice_OutStanding_UU, C_Invoice_OutStanding_UU);
+	}
+
+	/** Get C_Invoice_OutStanding_UU.
+		@return C_Invoice_OutStanding_UU	  */
+	public String getC_Invoice_OutStanding_UU () 
+	{
+		return (String)get_Value(COLUMNNAME_C_Invoice_OutStanding_UU);
+	}
+
+	public org.compiere.model.I_C_PaymentTerm getC_PaymentTerm() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_PaymentTerm)MTable.get(getCtx(), org.compiere.model.I_C_PaymentTerm.Table_Name)
+			.getPO(getC_PaymentTerm_ID(), get_TrxName());	}
+
+	/** Set Payment Term.
+		@param C_PaymentTerm_ID 
+		The terms of Payment (timing, discount)
+	  */
+	public void setC_PaymentTerm_ID (int C_PaymentTerm_ID)
+	{
+		if (C_PaymentTerm_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_C_PaymentTerm_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_C_PaymentTerm_ID, Integer.valueOf(C_PaymentTerm_ID));
+	}
+
+	/** Get Payment Term.
+		@return The terms of Payment (timing, discount)
+	  */
+	public int getC_PaymentTerm_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_PaymentTerm_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -196,9 +241,9 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 	public void setC_Project_ID (int C_Project_ID)
 	{
 		if (C_Project_ID < 1) 
-			set_Value (COLUMNNAME_C_Project_ID, null);
+			set_ValueNoCheck (COLUMNNAME_C_Project_ID, null);
 		else 
-			set_Value (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
+			set_ValueNoCheck (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
 	}
 
 	/** Get Project.
@@ -212,18 +257,38 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return ii.intValue();
 	}
 
-	/** Set Date Operation.
-		@param DateOperation Date Operation	  */
-	public void setDateOperation (Timestamp DateOperation)
+	/** Set Account Date.
+		@param DateAcct 
+		Accounting Date
+	  */
+	public void setDateAcct (Timestamp DateAcct)
 	{
-		set_Value (COLUMNNAME_DateOperation, DateOperation);
+		set_ValueNoCheck (COLUMNNAME_DateAcct, DateAcct);
 	}
 
-	/** Get Date Operation.
-		@return Date Operation	  */
-	public Timestamp getDateOperation () 
+	/** Get Account Date.
+		@return Accounting Date
+	  */
+	public Timestamp getDateAcct () 
 	{
-		return (Timestamp)get_Value(COLUMNNAME_DateOperation);
+		return (Timestamp)get_Value(COLUMNNAME_DateAcct);
+	}
+
+	/** Set Date Invoiced.
+		@param DateInvoiced 
+		Date printed on Invoice
+	  */
+	public void setDateInvoiced (Timestamp DateInvoiced)
+	{
+		set_ValueNoCheck (COLUMNNAME_DateInvoiced, DateInvoiced);
+	}
+
+	/** Get Date Invoiced.
+		@return Date printed on Invoice
+	  */
+	public Timestamp getDateInvoiced () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateInvoiced);
 	}
 
 	/** Set Description.
@@ -241,54 +306,6 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 	public String getDescription () 
 	{
 		return (String)get_Value(COLUMNNAME_Description);
-	}
-
-	/** DocAction AD_Reference_ID=135 */
-	public static final int DOCACTION_AD_Reference_ID=135;
-	/** Complete = CO */
-	public static final String DOCACTION_Complete = "CO";
-	/** Approve = AP */
-	public static final String DOCACTION_Approve = "AP";
-	/** Reject = RJ */
-	public static final String DOCACTION_Reject = "RJ";
-	/** Post = PO */
-	public static final String DOCACTION_Post = "PO";
-	/** Void = VO */
-	public static final String DOCACTION_Void = "VO";
-	/** Close = CL */
-	public static final String DOCACTION_Close = "CL";
-	/** Reverse - Correct = RC */
-	public static final String DOCACTION_Reverse_Correct = "RC";
-	/** Reverse - Accrual = RA */
-	public static final String DOCACTION_Reverse_Accrual = "RA";
-	/** Invalidate = IN */
-	public static final String DOCACTION_Invalidate = "IN";
-	/** Re-activate = RE */
-	public static final String DOCACTION_Re_Activate = "RE";
-	/** <None> = -- */
-	public static final String DOCACTION_None = "--";
-	/** Prepare = PR */
-	public static final String DOCACTION_Prepare = "PR";
-	/** Unlock = XL */
-	public static final String DOCACTION_Unlock = "XL";
-	/** Wait Complete = WC */
-	public static final String DOCACTION_WaitComplete = "WC";
-	/** Set Document Action.
-		@param DocAction 
-		The targeted status of the document
-	  */
-	public void setDocAction (String DocAction)
-	{
-
-		set_Value (COLUMNNAME_DocAction, DocAction);
-	}
-
-	/** Get Document Action.
-		@return The targeted status of the document
-	  */
-	public String getDocAction () 
-	{
-		return (String)get_Value(COLUMNNAME_DocAction);
 	}
 
 	/** DocStatus AD_Reference_ID=131 */
@@ -380,58 +397,14 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return ii.intValue();
 	}
 
-	/** Set Grand Total.
-		@param GrandTotal 
-		Total amount of document
-	  */
-	public void setGrandTotal (BigDecimal GrandTotal)
-	{
-		set_ValueNoCheck (COLUMNNAME_GrandTotal, GrandTotal);
-	}
-
-	/** Get Grand Total.
-		@return Total amount of document
-	  */
-	public BigDecimal getGrandTotal () 
-	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_GrandTotal);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
-	}
-
-	/** Set Invoiced.
-		@param IsInvoiced 
-		Is this invoiced?
-	  */
-	public void setIsInvoiced (boolean IsInvoiced)
-	{
-		set_Value (COLUMNNAME_IsInvoiced, Boolean.valueOf(IsInvoiced));
-	}
-
-	/** Get Invoiced.
-		@return Is this invoiced?
-	  */
-	public boolean isInvoiced () 
-	{
-		Object oo = get_Value(COLUMNNAME_IsInvoiced);
-		if (oo != null) 
-		{
-			 if (oo instanceof Boolean) 
-				 return ((Boolean)oo).booleanValue(); 
-			return "Y".equals(oo);
-		}
-		return false;
-	}
-
 	/** Set Department.
 		@param ISM_Department_ID Department	  */
 	public void setISM_Department_ID (int ISM_Department_ID)
 	{
 		if (ISM_Department_ID < 1) 
-			set_Value (COLUMNNAME_ISM_Department_ID, null);
+			set_ValueNoCheck (COLUMNNAME_ISM_Department_ID, null);
 		else 
-			set_Value (COLUMNNAME_ISM_Department_ID, Integer.valueOf(ISM_Department_ID));
+			set_ValueNoCheck (COLUMNNAME_ISM_Department_ID, Integer.valueOf(ISM_Department_ID));
 	}
 
 	/** Get Department.
@@ -444,18 +417,21 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return ii.intValue();
 	}
 
-	/** Set Unbilled.
-		@param IsUnbilled Unbilled	  */
-	public void setIsUnbilled (boolean IsUnbilled)
+	/** Set Paid.
+		@param IsPaid 
+		The document is paid
+	  */
+	public void setIsPaid (boolean IsPaid)
 	{
-		set_Value (COLUMNNAME_IsUnbilled, Boolean.valueOf(IsUnbilled));
+		set_ValueNoCheck (COLUMNNAME_IsPaid, Boolean.valueOf(IsPaid));
 	}
 
-	/** Get Unbilled.
-		@return Unbilled	  */
-	public boolean isUnbilled () 
+	/** Get Paid.
+		@return The document is paid
+	  */
+	public boolean isPaid () 
 	{
-		Object oo = get_Value(COLUMNNAME_IsUnbilled);
+		Object oo = get_Value(COLUMNNAME_IsPaid);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -465,21 +441,21 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return false;
 	}
 
-	/** Set Processed.
-		@param Processed 
-		The document has been processed
+	/** Set Sales Transaction.
+		@param IsSOTrx 
+		This is a Sales Transaction
 	  */
-	public void setProcessed (boolean Processed)
+	public void setIsSOTrx (boolean IsSOTrx)
 	{
-		set_Value (COLUMNNAME_Processed, Boolean.valueOf(Processed));
+		set_ValueNoCheck (COLUMNNAME_IsSOTrx, Boolean.valueOf(IsSOTrx));
 	}
 
-	/** Get Processed.
-		@return The document has been processed
+	/** Get Sales Transaction.
+		@return This is a Sales Transaction
 	  */
-	public boolean isProcessed () 
+	public boolean isSOTrx () 
 	{
-		Object oo = get_Value(COLUMNNAME_Processed);
+		Object oo = get_Value(COLUMNNAME_IsSOTrx);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -489,64 +465,37 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 		return false;
 	}
 
-	/** Set Process Now.
-		@param Processing Process Now	  */
-	public void setProcessing (boolean Processing)
-	{
-		set_Value (COLUMNNAME_Processing, Boolean.valueOf(Processing));
-	}
-
-	/** Get Process Now.
-		@return Process Now	  */
-	public boolean isProcessing () 
-	{
-		Object oo = get_Value(COLUMNNAME_Processing);
-		if (oo != null) 
-		{
-			 if (oo instanceof Boolean) 
-				 return ((Boolean)oo).booleanValue(); 
-			return "Y".equals(oo);
-		}
-		return false;
-	}
-
-	/** Set BA Operation .
-		@param TBU_BAOperation_ID 
-		BA Operation 
+	/** Set Order Reference.
+		@param POReference 
+		Transaction Reference Number (Sales Order, Purchase Order) of your Business Partner
 	  */
-	public void setTBU_BAOperation_ID (int TBU_BAOperation_ID)
+	public void setPOReference (String POReference)
 	{
-		if (TBU_BAOperation_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_TBU_BAOperation_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_TBU_BAOperation_ID, Integer.valueOf(TBU_BAOperation_ID));
+		set_ValueNoCheck (COLUMNNAME_POReference, POReference);
 	}
 
-	/** Get BA Operation .
-		@return BA Operation 
+	/** Get Order Reference.
+		@return Transaction Reference Number (Sales Order, Purchase Order) of your Business Partner
 	  */
-	public int getTBU_BAOperation_ID () 
+	public String getPOReference () 
 	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_TBU_BAOperation_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
+		return (String)get_Value(COLUMNNAME_POReference);
 	}
 
-	/** Set BA Operation .
-		@param TBU_BAOperation_UU 
-		BA Operation 
-	  */
-	public void setTBU_BAOperation_UU (String TBU_BAOperation_UU)
+	/** Set Total Outstanding.
+		@param TotalOutstanding Total Outstanding	  */
+	public void setTotalOutstanding (BigDecimal TotalOutstanding)
 	{
-		set_ValueNoCheck (COLUMNNAME_TBU_BAOperation_UU, TBU_BAOperation_UU);
+		set_Value (COLUMNNAME_TotalOutstanding, TotalOutstanding);
 	}
 
-	/** Get BA Operation .
-		@return BA Operation 
-	  */
-	public String getTBU_BAOperation_UU () 
+	/** Get Total Outstanding.
+		@return Total Outstanding	  */
+	public BigDecimal getTotalOutstanding () 
 	{
-		return (String)get_Value(COLUMNNAME_TBU_BAOperation_UU);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_TotalOutstanding);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
 	}
 }

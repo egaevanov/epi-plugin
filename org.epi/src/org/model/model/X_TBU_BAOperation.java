@@ -15,7 +15,7 @@
  * or via info@compiere.org or http://www.compiere.org/license.html           *
  *****************************************************************************/
 /** Generated Model - DO NOT CHANGE */
-package org.epi.model;
+package org.model.model;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -350,34 +350,6 @@ public class X_TBU_BAOperation extends PO implements I_TBU_BAOperation, I_Persis
 	public String getDocumentNo () 
 	{
 		return (String)get_Value(COLUMNNAME_DocumentNo);
-	}
-
-	public org.compiere.model.I_GL_Journal getGL_Journal() throws RuntimeException
-    {
-		return (org.compiere.model.I_GL_Journal)MTable.get(getCtx(), org.compiere.model.I_GL_Journal.Table_Name)
-			.getPO(getGL_Journal_ID(), get_TrxName());	}
-
-	/** Set Journal.
-		@param GL_Journal_ID 
-		General Ledger Journal
-	  */
-	public void setGL_Journal_ID (int GL_Journal_ID)
-	{
-		if (GL_Journal_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_GL_Journal_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_GL_Journal_ID, Integer.valueOf(GL_Journal_ID));
-	}
-
-	/** Get Journal.
-		@return General Ledger Journal
-	  */
-	public int getGL_Journal_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_GL_Journal_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
 	}
 
 	/** Set Grand Total.

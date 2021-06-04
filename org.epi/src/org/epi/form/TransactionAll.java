@@ -286,9 +286,6 @@ public class TransactionAll {
 			
 
 		}
-		
-		
-		
 
 		SQLGetData.append(" FROM "+tableName);
 		SQLGetData.append(" WHERE AD_Client_ID = "+AD_Client_ID);

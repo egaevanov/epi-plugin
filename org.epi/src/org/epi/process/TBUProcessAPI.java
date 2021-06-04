@@ -8,7 +8,7 @@ import org.compiere.model.MLocation;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 import org.compiere.util.DB;
-import org.epi.ws.model.API_Model_BPartner;
+import org.epi.ws.model.API_Model_Vendor;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -64,7 +64,7 @@ public class TBUProcessAPI extends SvrProcess {
 
 		if (p_PostType.equals(TYPE_BP)) {
 
-			API_Model_BPartner[] data = gson.fromJson(json.toString(), API_Model_BPartner[].class);
+			API_Model_Vendor[] data = gson.fromJson(json.toString(), API_Model_Vendor[].class);
 			rslt = createBPartner(AD_Client_ID, AD_Org_ID, data);
 
 		}
@@ -73,11 +73,11 @@ public class TBUProcessAPI extends SvrProcess {
 		return rslt;
 	}
 
-	private String createBPartner(int AD_Client_ID, int AD_Org_ID, API_Model_BPartner[] datas) {
+	private String createBPartner(int AD_Client_ID, int AD_Org_ID, API_Model_Vendor[] datas) {
 		
 		String rs = "";
 
-		for (API_Model_BPartner data : datas) {
+		for (API_Model_Vendor data : datas) {
 
 			try {
 
@@ -123,7 +123,7 @@ public class TBUProcessAPI extends SvrProcess {
 					location.setC_Country_ID(209);
 					System.out.println(data.Postal);
 					location.setPostal(data.Postal);
-					location.setC_City_ID(data.C_City_ID);
+//					location.setC_City_ID(data.C_City_ID);
 					location.saveEx();
 
 					if (location != null) {

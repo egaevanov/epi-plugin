@@ -8,6 +8,8 @@ import java.util.Properties;
 import org.adempiere.base.IModelFactory;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
+import org.epi.model.I_C_Invoice_OutStanding;
+import org.epi.model.I_C_Invoice_OutStandingLine;
 import org.epi.model.I_C_OrderlineDtl;
 import org.epi.model.I_C_Quotation;
 import org.epi.model.I_C_QuotationLine;
@@ -57,8 +59,11 @@ public class EPIModelFactory implements IModelFactory{
 		mapTableModels.put(I_TBU_BAOperation.Table_Name, "org.epi.model.MBAOperation");
 		mapTableModels.put(I_TBU_OperationLine.Table_Name, "org.epi.model.X_TBU_OperationLine");
 
-		mapTableModels.put(I_C_Quotation.Table_Name, "org.epi.model.X_C_Quotation");
+		mapTableModels.put(I_C_Quotation.Table_Name, "org.epi.model.MQuotation");
 		mapTableModels.put(I_C_QuotationLine.Table_Name, "org.epi.model.X_C_QuotationLine");
+				
+		mapTableModels.put(I_C_Invoice_OutStanding.Table_Name, "org.epi.model.MInvoiceOutStanding");
+		mapTableModels.put(I_C_Invoice_OutStandingLine.Table_Name, "org.epi.model.X_C_Invoice_OutStandingLine");
 
 	}
 	

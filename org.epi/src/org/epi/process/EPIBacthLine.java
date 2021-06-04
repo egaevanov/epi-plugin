@@ -50,7 +50,9 @@ public class EPIBacthLine extends SvrProcess {
 				
 		MOrg org = new MOrg(batch.getCtx(), batch.getAD_Org_ID(), null);
 
-		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)||org.getValue().toUpperCase().equals(FinalVariableGlobal.TBU)) {
+		if(org.getValue().toUpperCase().equals(FinalVariableGlobal.EPI)||
+				org.getValue().toUpperCase().equals(FinalVariableGlobal.TBU)||
+					org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
 						
 			StringBuilder SQLExecFuncRevaluation = new StringBuilder();
 			SQLExecFuncRevaluation.append("SELECT get_glbatch_line(?,?)");

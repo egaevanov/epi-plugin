@@ -14,7 +14,7 @@
  * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
  * or via info@compiere.org or http://www.compiere.org/license.html           *
  *****************************************************************************/
-package org.epi.model;
+package org.model.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -215,21 +215,6 @@ public interface I_TBU_BAOperation
 	  * Document sequence number of the document
 	  */
 	public String getDocumentNo();
-
-    /** Column name GL_Journal_ID */
-    public static final String COLUMNNAME_GL_Journal_ID = "GL_Journal_ID";
-
-	/** Set Journal.
-	  * General Ledger Journal
-	  */
-	public void setGL_Journal_ID (int GL_Journal_ID);
-
-	/** Get Journal.
-	  * General Ledger Journal
-	  */
-	public int getGL_Journal_ID();
-
-	public org.compiere.model.I_GL_Journal getGL_Journal() throws RuntimeException;
 
     /** Column name GrandTotal */
     public static final String COLUMNNAME_GrandTotal = "GrandTotal";

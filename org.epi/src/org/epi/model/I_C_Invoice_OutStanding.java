@@ -21,18 +21,18 @@ import java.sql.Timestamp;
 import org.compiere.model.*;
 import org.compiere.util.KeyNamePair;
 
-/** Generated Interface for TBU_BAOperation
+/** Generated Interface for C_Invoice_OutStanding
  *  @author iDempiere (generated) 
  *  @version Release 6.2
  */
 @SuppressWarnings("all")
-public interface I_TBU_BAOperation 
+public interface I_C_Invoice_OutStanding 
 {
 
-    /** TableName=TBU_BAOperation */
-    public static final String Table_Name = "TBU_BAOperation";
+    /** TableName=C_Invoice_OutStanding */
+    public static final String Table_Name = "C_Invoice_OutStanding";
 
-    /** AD_Table_ID=1000043 */
+    /** AD_Table_ID=1000048 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -109,20 +109,38 @@ public interface I_TBU_BAOperation
 
 	public org.compiere.model.I_C_DocType getC_DocType() throws RuntimeException;
 
-    /** Column name C_Invoice_ID */
-    public static final String COLUMNNAME_C_Invoice_ID = "C_Invoice_ID";
+    /** Column name C_Invoice_OutStanding_ID */
+    public static final String COLUMNNAME_C_Invoice_OutStanding_ID = "C_Invoice_OutStanding_ID";
 
-	/** Set Invoice.
-	  * Invoice Identifier
+	/** Set Invoice Outstanding	  */
+	public void setC_Invoice_OutStanding_ID (int C_Invoice_OutStanding_ID);
+
+	/** Get Invoice Outstanding	  */
+	public int getC_Invoice_OutStanding_ID();
+
+    /** Column name C_Invoice_OutStanding_UU */
+    public static final String COLUMNNAME_C_Invoice_OutStanding_UU = "C_Invoice_OutStanding_UU";
+
+	/** Set C_Invoice_OutStanding_UU	  */
+	public void setC_Invoice_OutStanding_UU (String C_Invoice_OutStanding_UU);
+
+	/** Get C_Invoice_OutStanding_UU	  */
+	public String getC_Invoice_OutStanding_UU();
+
+    /** Column name C_PaymentTerm_ID */
+    public static final String COLUMNNAME_C_PaymentTerm_ID = "C_PaymentTerm_ID";
+
+	/** Set Payment Term.
+	  * The terms of Payment (timing, discount)
 	  */
-	public void setC_Invoice_ID (int C_Invoice_ID);
+	public void setC_PaymentTerm_ID (int C_PaymentTerm_ID);
 
-	/** Get Invoice.
-	  * Invoice Identifier
+	/** Get Payment Term.
+	  * The terms of Payment (timing, discount)
 	  */
-	public int getC_Invoice_ID();
+	public int getC_PaymentTerm_ID();
 
-	public org.compiere.model.I_C_Invoice getC_Invoice() throws RuntimeException;
+	public org.compiere.model.I_C_PaymentTerm getC_PaymentTerm() throws RuntimeException;
 
     /** Column name C_Project_ID */
     public static final String COLUMNNAME_C_Project_ID = "C_Project_ID";
@@ -155,14 +173,31 @@ public interface I_TBU_BAOperation
 	  */
 	public int getCreatedBy();
 
-    /** Column name DateOperation */
-    public static final String COLUMNNAME_DateOperation = "DateOperation";
+    /** Column name DateAcct */
+    public static final String COLUMNNAME_DateAcct = "DateAcct";
 
-	/** Set Date Operation	  */
-	public void setDateOperation (Timestamp DateOperation);
+	/** Set Account Date.
+	  * Accounting Date
+	  */
+	public void setDateAcct (Timestamp DateAcct);
 
-	/** Get Date Operation	  */
-	public Timestamp getDateOperation();
+	/** Get Account Date.
+	  * Accounting Date
+	  */
+	public Timestamp getDateAcct();
+
+    /** Column name DateInvoiced */
+    public static final String COLUMNNAME_DateInvoiced = "DateInvoiced";
+
+	/** Set Date Invoiced.
+	  * Date printed on Invoice
+	  */
+	public void setDateInvoiced (Timestamp DateInvoiced);
+
+	/** Get Date Invoiced.
+	  * Date printed on Invoice
+	  */
+	public Timestamp getDateInvoiced();
 
     /** Column name Description */
     public static final String COLUMNNAME_Description = "Description";
@@ -176,19 +211,6 @@ public interface I_TBU_BAOperation
 	  * Optional short description of the record
 	  */
 	public String getDescription();
-
-    /** Column name DocAction */
-    public static final String COLUMNNAME_DocAction = "DocAction";
-
-	/** Set Document Action.
-	  * The targeted status of the document
-	  */
-	public void setDocAction (String DocAction);
-
-	/** Get Document Action.
-	  * The targeted status of the document
-	  */
-	public String getDocAction();
 
     /** Column name DocStatus */
     public static final String COLUMNNAME_DocStatus = "DocStatus";
@@ -231,19 +253,6 @@ public interface I_TBU_BAOperation
 
 	public org.compiere.model.I_GL_Journal getGL_Journal() throws RuntimeException;
 
-    /** Column name GrandTotal */
-    public static final String COLUMNNAME_GrandTotal = "GrandTotal";
-
-	/** Set Grand Total.
-	  * Total amount of document
-	  */
-	public void setGrandTotal (BigDecimal GrandTotal);
-
-	/** Get Grand Total.
-	  * Total amount of document
-	  */
-	public BigDecimal getGrandTotal();
-
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -257,19 +266,6 @@ public interface I_TBU_BAOperation
 	  */
 	public boolean isActive();
 
-    /** Column name IsInvoiced */
-    public static final String COLUMNNAME_IsInvoiced = "IsInvoiced";
-
-	/** Set Invoiced.
-	  * Is this invoiced?
-	  */
-	public void setIsInvoiced (boolean IsInvoiced);
-
-	/** Get Invoiced.
-	  * Is this invoiced?
-	  */
-	public boolean isInvoiced();
-
     /** Column name ISM_Department_ID */
     public static final String COLUMNNAME_ISM_Department_ID = "ISM_Department_ID";
 
@@ -279,62 +275,53 @@ public interface I_TBU_BAOperation
 	/** Get Department	  */
 	public int getISM_Department_ID();
 
-    /** Column name IsUnbilled */
-    public static final String COLUMNNAME_IsUnbilled = "IsUnbilled";
+    /** Column name IsPaid */
+    public static final String COLUMNNAME_IsPaid = "IsPaid";
 
-	/** Set Unbilled	  */
-	public void setIsUnbilled (boolean IsUnbilled);
-
-	/** Get Unbilled	  */
-	public boolean isUnbilled();
-
-    /** Column name Processed */
-    public static final String COLUMNNAME_Processed = "Processed";
-
-	/** Set Processed.
-	  * The document has been processed
+	/** Set Paid.
+	  * The document is paid
 	  */
-	public void setProcessed (boolean Processed);
+	public void setIsPaid (boolean IsPaid);
 
-	/** Get Processed.
-	  * The document has been processed
+	/** Get Paid.
+	  * The document is paid
 	  */
-	public boolean isProcessed();
+	public boolean isPaid();
 
-    /** Column name Processing */
-    public static final String COLUMNNAME_Processing = "Processing";
+    /** Column name IsSOTrx */
+    public static final String COLUMNNAME_IsSOTrx = "IsSOTrx";
 
-	/** Set Process Now	  */
-	public void setProcessing (boolean Processing);
-
-	/** Get Process Now	  */
-	public boolean isProcessing();
-
-    /** Column name TBU_BAOperation_ID */
-    public static final String COLUMNNAME_TBU_BAOperation_ID = "TBU_BAOperation_ID";
-
-	/** Set BA Operation .
-	  * BA Operation 
+	/** Set Sales Transaction.
+	  * This is a Sales Transaction
 	  */
-	public void setTBU_BAOperation_ID (int TBU_BAOperation_ID);
+	public void setIsSOTrx (boolean IsSOTrx);
 
-	/** Get BA Operation .
-	  * BA Operation 
+	/** Get Sales Transaction.
+	  * This is a Sales Transaction
 	  */
-	public int getTBU_BAOperation_ID();
+	public boolean isSOTrx();
 
-    /** Column name TBU_BAOperation_UU */
-    public static final String COLUMNNAME_TBU_BAOperation_UU = "TBU_BAOperation_UU";
+    /** Column name POReference */
+    public static final String COLUMNNAME_POReference = "POReference";
 
-	/** Set BA Operation .
-	  * BA Operation 
+	/** Set Order Reference.
+	  * Transaction Reference Number (Sales Order, Purchase Order) of your Business Partner
 	  */
-	public void setTBU_BAOperation_UU (String TBU_BAOperation_UU);
+	public void setPOReference (String POReference);
 
-	/** Get BA Operation .
-	  * BA Operation 
+	/** Get Order Reference.
+	  * Transaction Reference Number (Sales Order, Purchase Order) of your Business Partner
 	  */
-	public String getTBU_BAOperation_UU();
+	public String getPOReference();
+
+    /** Column name TotalOutstanding */
+    public static final String COLUMNNAME_TotalOutstanding = "TotalOutstanding";
+
+	/** Set Total Outstanding	  */
+	public void setTotalOutstanding (BigDecimal TotalOutstanding);
+
+	/** Get Total Outstanding	  */
+	public BigDecimal getTotalOutstanding();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";

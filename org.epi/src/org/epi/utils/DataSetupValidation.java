@@ -1,5 +1,10 @@
 package org.epi.utils;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.util.Calendar;
+
 import org.compiere.util.DB;
 
 public class DataSetupValidation {
@@ -31,6 +36,22 @@ public static boolean IsValidDataMaster(int AD_Client_ID, int AD_Org_ID,String T
 		return rs;
 		
 	}
+
+public static Timestamp convertStringToTimeStamp(String strDate) throws ParseException {
+	
+	Timestamp rs = null;
+	
+//	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	Date date = Date.valueOf(strDate);
+	
+	Calendar cal = Calendar.getInstance();
+	cal.setTime(date);
+	
+	rs = new Timestamp(cal.getTimeInMillis());
+	
+    return rs;
+      
+}
 	
 
 }

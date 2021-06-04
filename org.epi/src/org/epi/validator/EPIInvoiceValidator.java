@@ -1,12 +1,17 @@
 package org.epi.validator;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.logging.Level;
 
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MConversionRate;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
 import org.compiere.model.MInvoiceLine;
+import org.compiere.model.MJournal;
 import org.compiere.model.MOrderLine;
 import org.compiere.model.MOrg;
 import org.compiere.model.MSequence;
@@ -14,6 +19,7 @@ import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.epi.model.MBAOperation;
 import org.epi.model.X_ISM_Budget_Transaction;
 import org.epi.process.EPICheckCurrency;
 import org.epi.utils.FinalVariableGlobal;
@@ -49,6 +55,12 @@ public class EPIInvoiceValidator {
 			}else if(event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSECORRECT) || event.getTopic().equals(IEventTopics.DOC_BEFORE_REVERSEACCRUAL) ||
 					event.getTopic().equals(IEventTopics.DOC_BEFORE_VOID)) {
 				msgInv = beforeReverseTBU(Invoice);
+			}
+			
+		}else if(org.getValue().toUpperCase().equals(FinalVariableGlobal.ISM)) {
+			
+			if(event.getTopic().equals(IEventTopics.PO_AFTER_NEW)) {
+				msgInv = beforeSaveISM(Invoice);
 			}
 			
 		}
@@ -112,6 +124,39 @@ public class EPIInvoiceValidator {
 			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());			
 		}
 	
+		
+		StringBuilder SQLGetGL = new StringBuilder();
+		SQLGetGL.append("SELECT TBU_BAOperation_ID ");
+		SQLGetGL.append(" FROM TBU_BAOperation");
+		SQLGetGL.append(" WHERE C_Invoice_ID = "+Inv.getC_Invoice_ID());
+		
+		
+		PreparedStatement pstmt = null;
+     	ResultSet rs = null;
+			try {
+				pstmt = DB.prepareStatement(SQLGetGL.toString(), null);
+					
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
+					
+					MBAOperation BAop = new MBAOperation(Inv.getCtx(), rs.getInt(1), Inv.get_TrxName());
+					int GL_Journal_ID = BAop.getGL_Journal_ID();
+					
+					MJournal journal = new MJournal(Inv.getCtx(), GL_Journal_ID, Inv.get_TrxName());
+					journal.processIt(MJournal.ACTION_Reverse_Correct);
+					journal.saveEx();
+					
+				}
+
+			} catch (SQLException err) {
+				log.log(Level.SEVERE, SQLGetGL.toString(), err);
+			} finally {
+				DB.close(rs, pstmt);
+				rs = null;
+				pstmt = null;
+			}
+		
+		
 		return rslt;
 		
 	}
@@ -183,6 +228,7 @@ public class EPIInvoiceValidator {
 		}else if(!Inv.isSOTrx() && !Inv.isReversal()) {
 			DB.executeUpdateEx(SQLUpdateBAOperation.toString(), new Object[] {Inv.getAD_Client_ID(),Inv.getC_Invoice_ID()}, Inv.get_TrxName());			
 		}
+		
 		
 		return rslt;
 		
@@ -375,6 +421,29 @@ public class EPIInvoiceValidator {
 			if(rs == 0) {
 				rslt = "Error";
 			}
+		}
+		
+		
+		return rslt;
+		
+	}
+	
+	private static String beforeSaveISM(MInvoice Inv) {
+
+		
+		String rslt = "";
+		
+		if(Inv.isSOTrx()) {
+			
+			StringBuilder FuncFormatDocNo = new StringBuilder();
+			FuncFormatDocNo.append("select  f_update_docno_invcust_ism("+ Inv.getC_Invoice_ID()+","+Inv.getC_DocTypeTarget_ID()+")");
+			
+			Integer rs = DB.executeUpdate(FuncFormatDocNo.toString(), true, Inv.get_TrxName());
+
+			if(rs == 0) {
+				rslt = "Error";
+			}
+			
 		}
 		
 		

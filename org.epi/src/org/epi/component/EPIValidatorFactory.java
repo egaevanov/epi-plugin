@@ -22,12 +22,10 @@ import org.compiere.model.X_GL_Journal;
 import org.compiere.model.X_M_InOut;
 import org.compiere.util.CLogger;
 import org.epi.model.I_C_OrderlineDtl;
-import org.epi.model.I_C_Quotation;
 import org.epi.model.I_C_QuotationLine;
 import org.epi.model.I_TBU_BAOperation;
 import org.epi.model.I_TBU_OperationLine;
 import org.epi.model.X_C_OrderlineDtl;
-import org.epi.model.X_C_Quotation;
 import org.epi.model.X_C_QuotationLine;
 import org.epi.model.X_TBU_BAOperation;
 import org.epi.model.X_TBU_OperationLine;
@@ -144,7 +142,12 @@ public class EPIValidatorFactory extends AbstractEventHandler{
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_GL_Journal.Table_Name);
 
 		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, X_GL_Journal.Table_Name);
-		
+		registerTableEvent(IEventTopics.DOC_BEFORE_VOID, X_GL_Journal.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_REVERSEACCRUAL, X_GL_Journal.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_REVERSECORRECT, X_GL_Journal.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_REACTIVATE, X_GL_Journal.Table_Name);
+		registerTableEvent(IEventTopics.PO_BEFORE_DELETE, X_GL_Journal.Table_Name);
+
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, X_C_ElementValue.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, X_C_ElementValue.Table_Name);
 		
