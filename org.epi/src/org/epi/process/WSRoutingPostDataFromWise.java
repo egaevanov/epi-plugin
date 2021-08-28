@@ -230,7 +230,7 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
 			API_Model_POHeader dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_POHeader.class);
 			
-			JsonArray jsonDetails = gson.fromJson(dataHeader.details.toString(), JsonArray.class);
+			JsonArray jsonDetails = gson.fromJson(dataHeader.detail.toString(), JsonArray.class);
 			API_Model_POLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_POLines[].class);
 			
 			HashMap<String, Integer> product = WSExecutePurchaseOrder.CheckProductData(p_AD_Client_ID, p_AD_Org_ID, dataHeader,dataDetails, getCtx(), get_TrxName());
@@ -258,14 +258,14 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
 			API_Model_SOHeader dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_SOHeader.class);
 			
-			JsonArray jsonDetails = gson.fromJson(dataHeader.details.toString(), JsonArray.class);
-			API_Model_SOLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_SOLines[].class);
+			JsonArray jsonDetail = gson.fromJson(dataHeader.detail.toString(), JsonArray.class);
+			API_Model_SOLines[] dataDetails= gson.fromJson(jsonDetail.toString(), API_Model_SOLines[].class);
 	
-			Integer M_Warehouse_ID= WSExecuteSalesOrder.CheckWarehouse(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
+//			Integer M_Warehouse_ID= WSExecuteSalesOrder.CheckWarehouse(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
 			Integer C_BPartner_ID = WSExecuteSalesOrder.CheckCustomer(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());	
 	
 			
-			rs = WSExecuteSalesOrder.CreateSalesOrder(p_AD_Client_ID, p_AD_Org_ID, dataHeader,dataDetails, getCtx(), get_TrxName(),M_Warehouse_ID,C_BPartner_ID);
+			rs = WSExecuteSalesOrder.CreateSalesOrder(p_AD_Client_ID, p_AD_Org_ID, dataHeader,dataDetails, getCtx(), get_TrxName(),1000013,C_BPartner_ID);
 			
 			if(rs <= 0) {
 				
@@ -289,8 +289,10 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			
 			Integer A_Asset_ID = WSExecuteBAST.CheckAssetData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
 			Integer C_BPartner_ID = WSExecuteBAST.CheckCustomer(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());	
-	
-			rs = WSExecuteBAST.CreateBAST(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName(),A_Asset_ID,C_BPartner_ID);
+			Integer C_Order_ID = WSExecuteBAST.CheckSO(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());	
+
+			
+			rs = WSExecuteBAST.CreateBAST(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName(),A_Asset_ID,C_BPartner_ID,C_Order_ID);
 			
 			if(rs <= 0) {
 				result = "ERROR";
@@ -311,12 +313,10 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
 			API_Model_TimeSheetHeader dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_TimeSheetHeader.class);
 			
-			JsonArray jsonDetails = gson.fromJson(dataHeader.details.toString(), JsonArray.class);
+			JsonArray jsonDetails = gson.fromJson(dataHeader.detail.toString(), JsonArray.class);
 			API_Model_TimeSheetLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_TimeSheetLines[].class);
 					
-			Integer M_Warehouse_ID = WSExecuteTimesheetDelivery.CheckWarehouse(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
-
-			rs = WSExecuteTimesheetDelivery.CreateTimesheetDelivery(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName(),M_Warehouse_ID);
+			rs = WSExecuteTimesheetDelivery.CreateTimesheetDelivery(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName(),1000013);
 			
 			if(rs <= 0) {
 				
@@ -349,7 +349,7 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 				return "Process Gagal";
 			}else {
 				
-				result ="Timeshhet Delivery transaction has been successfully posted on iDempiere ERP System";
+				result ="Master Asset has been successfully posted on iDempiere ERP System";
 				
 			}
 			

@@ -17,40 +17,40 @@ public class WSExecuteMasterAsset {
 		
 		SQLCheckAsset.append("SELECT A_Asset_ID ");
 		SQLCheckAsset.append(" FROM A_Asset ");
-		SQLCheckAsset.append(" WHERE InventoryNo = '"+dataHeader.asset_id+"'");
+		SQLCheckAsset.append(" WHERE Value = '"+dataHeader.asset_id+"'");
 
 		
 		Integer A_Asset_ID = DB.getSQLValueEx(trxName, SQLCheckAsset.toString());
 		
-		if(A_Asset_ID <= 0) {
+		if(A_Asset_ID <= 0)
+			A_Asset_ID = 0;
+		
 			
-			MAsset asset = new MAsset(ctx, 0, trxName);
-			asset.setAD_Org_ID(AD_Org_ID);
+		MAsset asset = new MAsset(ctx, A_Asset_ID, trxName);
+		asset.setAD_Org_ID(AD_Org_ID);
 
-			asset.setValue(dataHeader.asset_id);			
+		asset.setValue(dataHeader.asset_id);			
 			
-			asset.setName(dataHeader.asset_name);
-			asset.setInventoryNo(dataHeader.asset_id);
-			asset.set_ValueOfColumn("PoliceNo", dataHeader.nopol);
-			asset.set_ValueOfColumn("PoliceNo_Before", dataHeader.nopol_before);
-			asset.set_ValueOfColumn("HullNo", dataHeader.nolam);
-			asset.set_ValueOfColumn("AssetType", dataHeader.asset_type);
-			asset.set_ValueOfColumn("AssetClass", dataHeader.asset_class);
-			asset.set_ValueOfColumn("EngineNo", dataHeader.nosin);
-			asset.set_ValueOfColumn("BodyNo", dataHeader.norka);
-			asset.setDescription("");
-//			asset.setC_BPartner_ID(null);
-//			asset.setManufacturedYear(null);
-//			asset.setC_Project_ID(null);
+		asset.setName(dataHeader.asset_name);
+		asset.setInventoryNo(dataHeader.asset_no);
+		asset.set_ValueOfColumn("PoliceNo", dataHeader.nopol);
+		asset.set_ValueOfColumn("PoliceNo_Before", dataHeader.nopol_before);
+		asset.set_ValueOfColumn("HullNo", dataHeader.nolam);
+		asset.set_ValueOfColumn("AssetType", dataHeader.asset_type);
+		asset.set_ValueOfColumn("AssetClass", dataHeader.asset_class);
+		asset.set_ValueOfColumn("EngineNo", dataHeader.nosin);
+		asset.set_ValueOfColumn("BodyNo", dataHeader.norka);
+		asset.setDescription(dataHeader.remarks);
+		asset.set_ValueOfColumn("AssetStatus", dataHeader.asset_status);
+		asset.set_ValueOfColumn("AssetFile", dataHeader.asset_file);
+		asset.set_ValueOfColumn("ManufacturedYear", dataHeader.manufacturing_year);
+		asset.setC_Project_ID(dataHeader.project_id);
 
-			asset.saveEx();
+		asset.saveEx();
 
 			
-			result = asset.getA_Asset_ID();
+		result = asset.getA_Asset_ID();
 			
-		}else if(A_Asset_ID > 0) {
-			result = A_Asset_ID;
-		}
 		
 		return result;
 	}

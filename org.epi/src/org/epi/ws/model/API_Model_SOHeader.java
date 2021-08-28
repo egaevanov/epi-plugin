@@ -19,7 +19,7 @@ public class API_Model_SOHeader {
 	public Integer termin_id;
 	public String approval_date;
 	public String remark;
-	public ArrayList<JsonObject> details;
+	public ArrayList<JsonObject> detail;
 
 	public API_Model_SOHeader(String so_no,
 			String so_type,
@@ -34,7 +34,7 @@ public class API_Model_SOHeader {
 			Integer termin_id,
 			String approval_date,
 			String remark,
-			ArrayList<JsonObject> details) {
+			ArrayList<JsonObject> detail) {
 		
 		this.so_no = so_no;
 		this.so_type = so_type;
@@ -49,7 +49,7 @@ public class API_Model_SOHeader {
 		this.termin_id = termin_id;
 		this.approval_date = approval_date;
 		this.remark = remark;
-		this.details = details;
+		this.detail = detail;
 		
 	}
 	

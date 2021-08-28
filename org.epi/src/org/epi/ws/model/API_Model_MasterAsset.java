@@ -17,7 +17,7 @@ public class API_Model_MasterAsset {
 	public String asset_status;
 	public String asset_file;
 	public String manufacturing_year;
-	public String project_id;
+	public Integer project_id;
 	public String po_id;
 	
 	public API_Model_MasterAsset(String asset_id,
@@ -35,7 +35,7 @@ public class API_Model_MasterAsset {
 			String asset_status,
 			String asset_file,
 			String manufacturing_year,
-			String project_id,
+			Integer project_id,
 			String po_id) {
 		
 		

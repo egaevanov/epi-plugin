@@ -17,7 +17,7 @@ public class API_Model_TimeSheetHeader {
 	public String url_2;
 	public String url_3;
 	public String url_4;
-	public ArrayList<JsonObject> details;
+	public ArrayList<JsonObject> detail;
 	public Integer project_id;
 	
 	public API_Model_TimeSheetHeader(
@@ -32,7 +32,7 @@ public class API_Model_TimeSheetHeader {
 			String url_2,
 			String url_3,
 			String url_4,
-			ArrayList<JsonObject> details,
+			ArrayList<JsonObject> detail,
 			Integer project_id) {
 		
 		this.ts_no = ts_no;
@@ -46,7 +46,7 @@ public class API_Model_TimeSheetHeader {
 		this.url_2 = url_2;
 		this.url_3 = url_3;
 		this.url_4 = url_4;
-		this.details = details;
+		this.detail = detail;
 		this.project_id = project_id;
 	
 	}

@@ -20,7 +20,7 @@ public class API_Model_POHeader {
 	public String remaks;
 	public Integer termin_id;
 	public String approval_date;
-	public ArrayList<JsonObject> details;
+	public ArrayList<JsonObject> detail;
 	
 	public API_Model_POHeader(
 			String po_no,
@@ -37,7 +37,7 @@ public class API_Model_POHeader {
 			String remaks,
 			Integer termin_id,
 			String approval_date,
-			ArrayList<JsonObject> details) {
+			ArrayList<JsonObject> detail) {
 		
 		this.po_no = po_no;
 		this.pr_no = pr_no;
@@ -53,7 +53,7 @@ public class API_Model_POHeader {
 		this.remaks = remaks;
 		this.termin_id = termin_id;
 		this.approval_date = approval_date;
-		this.details = details;
+		this.detail = detail;
 		
 	}
 	

@@ -5,9 +5,7 @@ import java.util.Properties;
 
 import org.compiere.model.MInOut;
 import org.compiere.model.MInOutLine;
-import org.compiere.model.MLocator;
 import org.compiere.model.MOrder;
-import org.compiere.model.MWarehouse;
 import org.compiere.util.DB;
 import org.epi.ws.model.API_Model_TimeSheetHeader;
 import org.epi.ws.model.API_Model_TimeSheetLines;
@@ -21,6 +19,15 @@ public class WSExecuteTimesheetDelivery {
 		try {
 			
 			MInOut TimeSheet = new MInOut(ctx, 0, trxName);
+			
+			StringBuilder SQLCheckLocator = new StringBuilder();
+			
+			SQLCheckLocator.append("SELECT M_Locator_ID ");
+			SQLCheckLocator.append(" FROM M_Locator ");
+			SQLCheckLocator.append(" WHERE Value = '"+dataHeader.location_id+"'");
+
+			
+			Integer M_Locator_ID = DB.getSQLValueEx(trxName, SQLCheckLocator.toString());
 			
 			
 			TimeSheet.setDocumentNo(dataHeader.ts_no);
@@ -59,6 +66,7 @@ public class WSExecuteTimesheetDelivery {
 			
 			TimeSheet.setC_BPartner_ID(ord.getC_BPartner_ID());
 			TimeSheet.setC_BPartner_Location_ID(ord.getC_BPartner_Location_ID());
+			TimeSheet.setDescription(dataHeader.delivery_note);
 
 			StringBuilder SQLCheckAsset = new StringBuilder();
 			SQLCheckAsset.append("SELECT A_Asset_ID ");
@@ -71,14 +79,14 @@ public class WSExecuteTimesheetDelivery {
 			TimeSheet.set_CustomColumn("A_Asset_ID", A_Asset_ID);
 			TimeSheet.setM_Warehouse_ID(M_Warehouse_ID);
 			TimeSheet.setPriorityRule(ord.getPriorityRule());
-			TimeSheet.setC_Project_ID(dataHeader.project_id);
+//			TimeSheet.setC_Project_ID(dataHeader.project_id);
 			
 			StringBuilder SQLGetDeliveryRule = new StringBuilder();
 			SQLGetDeliveryRule.append("SELECT Description ");
 			SQLGetDeliveryRule.append(" FROM AD_Param ");
 			SQLGetDeliveryRule.append(" WHERE AD_Client_ID = "+AD_Client_ID);
 			SQLGetDeliveryRule.append(" AND AD_Org_ID = "+AD_Org_ID);
-			SQLGetDeliveryRule.append(" AND Value = 'SO_DefaultParameter'");
+			SQLGetDeliveryRule.append(" AND Value = 'TS_DefaultParameter'");
 			SQLGetDeliveryRule.append(" AND Name = 'DeliveryRule'");
 			
 			String deliRule = DB.getSQLValueString(trxName, SQLGetDeliveryRule.toString());
@@ -91,7 +99,7 @@ public class WSExecuteTimesheetDelivery {
 			SQLGetDeliveryViaRule.append(" FROM AD_Param ");
 			SQLGetDeliveryViaRule.append(" WHERE AD_Client_ID = "+AD_Client_ID);
 			SQLGetDeliveryViaRule.append(" AND AD_Org_ID = "+AD_Org_ID);
-			SQLGetDeliveryViaRule.append(" AND Value = 'SO_DefaultParameter'");
+			SQLGetDeliveryViaRule.append(" AND Value = 'TS_DefaultParameter'");
 			SQLGetDeliveryViaRule.append(" AND Name = 'DeliveryVia'");
 			String deliViaRule = DB.getSQLValueString(trxName, SQLGetDeliveryViaRule.toString());
 
@@ -128,6 +136,7 @@ public class WSExecuteTimesheetDelivery {
 					ShipLine.setLine(detail.line);
 					ShipLine.setC_OrderLine_ID(detail.so_line);
 					ShipLine.setM_InOut_ID(TimeSheet.getM_InOut_ID());
+					ShipLine.setM_Locator_ID(M_Locator_ID);
 					
 
 					StringBuilder SQLGetCharge = new StringBuilder();
@@ -187,56 +196,5 @@ public class WSExecuteTimesheetDelivery {
 		return result;
 		
 	}
-	
-	public static Integer CheckWarehouse(int AD_Client_ID, int AD_Org_ID, API_Model_TimeSheetHeader dataHeader, Properties ctx , String trxName) {
-
-		Integer result = 0; 
-		
-		StringBuilder SQLCheckWarehouse = new StringBuilder();
-		
-		SQLCheckWarehouse.append("SELECT M_Warehouse_ID ");
-		SQLCheckWarehouse.append(" FROM M_Warehouse ");
-		SQLCheckWarehouse.append(" WHERE Value = '"+dataHeader.location_id+"'");
-
-		Integer M_Warehouse_ID = DB.getSQLValueEx(trxName, SQLCheckWarehouse.toString());
-
-		
-		if(M_Warehouse_ID > 0) {
-			result = M_Warehouse_ID;
-		}else if(M_Warehouse_ID <= 0 || M_Warehouse_ID == null) {
-			
-			
-			MWarehouse newWH = new MWarehouse(ctx, M_Warehouse_ID, trxName);
-			newWH.setAD_Org_ID(AD_Org_ID);	
-			newWH.setValue(dataHeader.location_id);
-			newWH.setName("Data not yes sync");
-			newWH.setDescription("Data not yes sync");
-			newWH.setIsDisallowNegativeInv(false);
-			newWH.setSeparator("*");
-			
-			if(newWH.save()) {
-				
-				MLocator locator = new MLocator(ctx, 0, trxName);
-				locator.setAD_Org_ID(AD_Org_ID);
-				locator.setIsActive(true);
-				locator.setM_Warehouse_ID(newWH.getM_Warehouse_ID());
-				locator.setValue(dataHeader.location_id);
-				locator.setIsDefault(true);
-				locator.setPriorityNo(10);
-				
-				locator.setX("1");
-				locator.setY("1");
-				locator.setZ("1");
-				locator.saveEx();
-				
-			}
-			
-			result = newWH.getM_Warehouse_ID();
-		}
-
-		return result;
-	}
-	
-	
 	
 }
