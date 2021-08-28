@@ -63,6 +63,12 @@ public class EPIGLJournalValidator {
 				msgJournal = beforeDeleteTBU(journal);
 				
 			}
+		}else if(org.getValue().equals(FinalVariableGlobal.WRG)) {
+			
+			if(event.getTopic().equals(IEventTopics.DOC_BEFORE_COMPLETE)) {	
+				
+				
+			}
 		}
 		
 	return msgJournal;
@@ -575,5 +581,26 @@ public class EPIGLJournalValidator {
 			
 		}
 		return rslt;
+	}
+	
+	private static String beforeCompleteWS(MJournal journal) {
+		String rslt = "";
+		
+		MGLCategory cat = new MGLCategory(journal.getCtx(), journal.getGL_Category_ID(), journal.get_TrxName());
+		
+		if(cat.get_ValueAsString("CategoryCode").equals("PU") ||cat.get_ValueAsString("CategoryCode").equals("RU") ) {
+		
+			StringBuilder SQLUpdateComplete = new StringBuilder();
+			SQLUpdateComplete.append("UPDATE TBU_BAOperation ");
+			SQLUpdateComplete.append(" SET IsUnbilled = 'Y' ");
+			SQLUpdateComplete.append(" WHERE GL_Journal_ID = "+ journal.getGL_Journal_ID());
+			
+			DB.executeUpdate(SQLUpdateComplete.toString(), journal.get_TrxName());
+		
+		}
+		
+		return rslt;
+		
+		
 	}
 }

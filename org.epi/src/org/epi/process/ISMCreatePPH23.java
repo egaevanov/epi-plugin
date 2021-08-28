@@ -1,4 +1,4 @@
-package org.epi.process;
+  package org.epi.process;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -67,7 +67,6 @@ public class ISMCreatePPH23 extends SvrProcess {
 			sqlPayDocType.append(" WHERE AD_Client_ID = ?");
 			sqlPayDocType.append(" AND DocBaseType = ?");
 			int pay_C_DocType_ID = DB.getSQLValueEx(get_TrxName(), sqlPayDocType.toString(), new Object[]{getAD_Client_ID(),MDocType.DOCBASETYPE_APPayment});
-
 			
 			StringBuilder getPPh = new StringBuilder();
 			getPPh.append("SELECT C_Charge_ID ");
@@ -108,7 +107,6 @@ public class ISMCreatePPH23 extends SvrProcess {
 		}
 		
 	}
-	
 	
 		return "";
 	}

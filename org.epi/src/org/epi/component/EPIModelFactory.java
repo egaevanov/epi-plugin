@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.adempiere.base.IModelFactory;
 import org.compiere.model.PO;
 import org.compiere.util.Env;
+import org.epi.model.I_A_Depreciation_Exp_Cus;
 import org.epi.model.I_C_Invoice_OutStanding;
 import org.epi.model.I_C_Invoice_OutStandingLine;
 import org.epi.model.I_C_OrderlineDtl;
@@ -19,6 +20,7 @@ import org.epi.model.I_ISM_Budget_Planning;
 import org.epi.model.I_ISM_Budget_Transaction;
 import org.epi.model.I_ISM_Department;
 import org.epi.model.I_M_InOutLineDtl;
+import org.epi.model.I_M_Product_Cost;
 import org.epi.model.I_M_SaveInv;
 import org.epi.model.I_TBU_BAOperation;
 import org.epi.model.I_TBU_OperationEquipment;
@@ -64,6 +66,9 @@ public class EPIModelFactory implements IModelFactory{
 				
 		mapTableModels.put(I_C_Invoice_OutStanding.Table_Name, "org.epi.model.MInvoiceOutStanding");
 		mapTableModels.put(I_C_Invoice_OutStandingLine.Table_Name, "org.epi.model.X_C_Invoice_OutStandingLine");
+		
+		mapTableModels.put(I_A_Depreciation_Exp_Cus.Table_Name, "org.epi.model.X_A_Depreciation_Exp_Cus");
+		mapTableModels.put(I_M_Product_Cost.Table_Name, "org.epi.model.X_M_Product_Cost");
 
 	}
 	

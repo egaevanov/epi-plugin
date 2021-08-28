@@ -10,6 +10,8 @@ public interface FinalVariableGlobal {
 	public static final String TBU = "TBU";
 	public static final String MHU = "MHU";
 	public static final String CERRY = "CRY";
+	public static final String WRG = "WRG";
+
 	
 	public static final BigDecimal ISMPPH23RATE = new BigDecimal(2);
 	

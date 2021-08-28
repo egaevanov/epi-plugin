@@ -26,6 +26,7 @@ public class EPIProcessFinancialReportExport extends SvrProcess{
 	private int p_C_AcctSchema_ID = 0;
 	private int p_PA_Report_ID = 0;
 	private int p_C_Period_ID = 0;
+	private int p_C_Project_ID = 0;
 	
 	
 	@Override
@@ -48,8 +49,9 @@ public class EPIProcessFinancialReportExport extends SvrProcess{
 				p_PA_Report_ID  = (int)para[i].getParameterAsInt();
 			}else if(name.equals("C_Period_ID")) {
 				p_C_Period_ID  = (int)para[i].getParameterAsInt();
-			}
-			else
+			}else if(name.equals("C_Project_ID")) {
+				p_C_Project_ID  = (int)para[i].getParameterAsInt();
+			}else
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
 		}
 		
@@ -59,7 +61,7 @@ public class EPIProcessFinancialReportExport extends SvrProcess{
 	protected String doIt() throws Exception {
 		
 		StringBuilder SQLExecFucntion = new StringBuilder();
-		SQLExecFucntion.append("SELECT f_insert_fact_acct_temp(?,?,?,?,?)");
+		SQLExecFucntion.append("SELECT f_insert_fact_acct_temp(?,?,?,?,?,?)");
 		boolean IsOK = true;
 		
 		PreparedStatement pstmt = null;
@@ -71,6 +73,7 @@ public class EPIProcessFinancialReportExport extends SvrProcess{
 				pstmt.setInt(3,p_C_AcctSchema_ID);	
 				pstmt.setInt(4,p_PA_Report_ID);	
 				pstmt.setInt(5,p_C_Period_ID);	
+				pstmt.setInt(6,p_C_Project_ID);	
 
 				rs = pstmt.executeQuery();
 				while (rs.next()) {
@@ -118,7 +121,9 @@ public class EPIProcessFinancialReportExport extends SvrProcess{
 						list.add (new ProcessInfoParameter("C_AcctSchema_ID", p_C_AcctSchema_ID, null, null, null));
 						list.add (new ProcessInfoParameter("PA_Report_ID", p_PA_Report_ID, null, null, null));
 						list.add (new ProcessInfoParameter("C_Period_ID", p_C_Period_ID, null, null, null));
+						list.add (new ProcessInfoParameter("C_Project_ID", p_C_Project_ID , null, null, null));
 
+						
 						ProcessInfoParameter[] pars = new ProcessInfoParameter[list.size()];
 						list.toArray(pars);
 
