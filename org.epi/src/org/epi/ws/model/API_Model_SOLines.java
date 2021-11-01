@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class API_Model_SOLines {
 	
-	public String so_line;
+	public Integer so_line;
 	public String description;
 	public Integer charge_id;
 	public BigDecimal qty_order;
 	public BigDecimal price;
 	
-	public API_Model_SOLines(String so_line,
+	public API_Model_SOLines(Integer so_line,
 			String description,
 			Integer charge_id,
 			BigDecimal qty_order,

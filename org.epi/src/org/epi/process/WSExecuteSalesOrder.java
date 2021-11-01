@@ -125,7 +125,7 @@ public static Integer CreateSalesOrder(int AD_Client_ID, int AD_Org_ID, API_Mode
 					noLine = noLine+1;
 					MOrderLine line = new MOrderLine(ctx, 0, trxName);
 					
-					line.setLine(noLine);
+					line.setLine(DataDetail.so_line);
 
 					line.setC_Order_ID(so.getC_Order_ID());
 					line.setM_Warehouse_ID(so.getM_Warehouse_ID());

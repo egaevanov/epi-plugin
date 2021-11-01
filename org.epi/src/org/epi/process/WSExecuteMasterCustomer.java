@@ -38,6 +38,7 @@ public class WSExecuteMasterCustomer {
 			bp.setC_BP_Group_ID(data.bp_group);
 			bp.setValue(data.bp_value);
 			bp.setName(data.bp_name);
+			bp.setName2(data.bp_ws_location);
 			bp.setC_PaymentTerm_ID(data.bp_termin_id);
 			bp.saveEx();
 				
@@ -77,6 +78,7 @@ public class WSExecuteMasterCustomer {
 					MBPartnerLocation BpLoc = new MBPartnerLocation(ctx, C_BPartner_Location_ID, trxName);
 					BpLoc.setC_BPartner_ID(bp.getC_BPartner_ID());
 					BpLoc.setC_Location_ID(location.getC_Location_ID());
+					BpLoc.setName(location.getAddress1());
 					BpLoc.setPhone(data.bp_phone);
 					BpLoc.setPhone2(data.bp_phone);
 					BpLoc.setFax(data.bp_fax);

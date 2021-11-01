@@ -111,7 +111,13 @@ public class WSExecuteTimesheetDelivery {
 			TimeSheet.set_ValueOfColumn("URL2", dataHeader.url_2);
 			TimeSheet.set_ValueOfColumn("URL3", dataHeader.url_3);
 			TimeSheet.set_ValueOfColumn("URL4", dataHeader.url_4);
+			
 
+			Timestamp startdate = org.epi.utils.DataSetupValidation.convertStringToTimeStamp(dataHeader.startdate);
+			Timestamp enddate = org.epi.utils.DataSetupValidation.convertStringToTimeStamp(dataHeader.enddate);
+
+			TimeSheet.set_ValueOfColumn("startdate", startdate);
+			TimeSheet.set_ValueOfColumn("enddate", enddate);
 			
 			
 			StringBuilder SQLGetDocStatus = new StringBuilder();

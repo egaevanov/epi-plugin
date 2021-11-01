@@ -19,6 +19,8 @@ public class API_Model_TimeSheetHeader {
 	public String url_4;
 	public ArrayList<JsonObject> detail;
 	public Integer project_id;
+	public String startdate;
+	public String enddate;
 	
 	public API_Model_TimeSheetHeader(
 			String ts_no,
@@ -33,7 +35,9 @@ public class API_Model_TimeSheetHeader {
 			String url_3,
 			String url_4,
 			ArrayList<JsonObject> detail,
-			Integer project_id) {
+			Integer project_id,
+			String startdate,
+			String enddate) {
 		
 		this.ts_no = ts_no;
 		this.so_no = so_no;
@@ -48,6 +52,8 @@ public class API_Model_TimeSheetHeader {
 		this.url_4 = url_4;
 		this.detail = detail;
 		this.project_id = project_id;
+		this.startdate = startdate;
+		this.enddate = enddate;
 	
 	}
 
