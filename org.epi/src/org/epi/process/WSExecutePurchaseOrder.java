@@ -53,11 +53,27 @@ public class WSExecutePurchaseOrder {
 			po.setDatePromised(DateOrdered);
 			
 			
+			StringBuilder SQLGetPrioRule = new StringBuilder();
+			SQLGetPrioRule.append("SELECT Description ");
+			SQLGetPrioRule.append(" FROM AD_Param ");
+			SQLGetPrioRule.append(" WHERE AD_Client_ID = "+AD_Client_ID);
+			SQLGetPrioRule.append(" AND AD_Org_ID = "+AD_Org_ID);
+			SQLGetPrioRule.append(" AND Value = 'PO_DefaultParameter'");
+			SQLGetPrioRule.append(" AND Name = 'PriorityRule'");
+			String priorityRule = DB.getSQLValueString(trxName, SQLGetPrioRule.toString());
+
+			
+			po.setPriorityRule(priorityRule);
+			
+			
 			StringBuilder SQLGetBPLoc = new StringBuilder();
 			SQLGetBPLoc.append("SELECT C_BPartner_Location_ID  ");
 			SQLGetBPLoc.append(" FROM C_BPartner_Location ");
 			SQLGetBPLoc.append(" WHERE AD_Client_ID = "+AD_Client_ID);
 			SQLGetBPLoc.append(" AND name = '"+dataHeader.vendor_id+"'");
+			
+			
+			
 			
 			Integer C_BPartner_Location_ID =DB.getSQLValue(trxName, SQLGetBPLoc.toString());
 			po.setC_BPartner_ID(C_BPartner_ID);
@@ -144,7 +160,7 @@ public class WSExecutePurchaseOrder {
 					line.setM_Warehouse_ID(po.getM_Warehouse_ID());
 					line.setC_BPartner_ID(po.getC_BPartner_ID());
 					line.setC_BPartner_Location_ID(po.getC_BPartner_Location_ID());
-					line.setLine(noLine);
+					line.setLine(DataDetail.po_line);
 					if(DataDetail.charge_id != null) {
 						line.setC_Charge_ID(DataDetail.charge_id);
 					}else if(DataDetail.material_id != null) {

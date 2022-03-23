@@ -11,7 +11,7 @@ public class API_Model_GoodIssue {
 	public Integer location_id;
 	public String issued_date;
 	public String approval_date;
-	public String asset_id;
+	public Integer asset_id;
 	public String description;
 	public ArrayList<JsonObject> details;
 	
@@ -20,7 +20,7 @@ public class API_Model_GoodIssue {
 			Integer location_id,
 			String issued_date,
 			String approval_date,
-			String asset_id,
+			Integer asset_id,
 			String description,
 			ArrayList<JsonObject> details) {
 		

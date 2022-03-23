@@ -478,100 +478,106 @@ public class EPIInvoiceValidator {
 		
 		//create product Costx
 		if(!Inv.isReversal()) {
+			MOrder order = null;
 			
-			MOrder order = new MOrder(Inv.getCtx(),Inv.getC_Order_ID() , Inv.get_TrxName());
+			if(Inv.getC_Order_ID() > 0) {
+				order = new MOrder(Inv.getCtx(),Inv.getC_Order_ID() , Inv.get_TrxName());
+			}
 			
-			if(order.get_Value("PO_Type").equals("PO from WO")||order.get_Value("PO_Type").equals("Sparepart for Stock")){
-
-				MInvoiceLine[] lines = Inv.getLines();
-				for(MInvoiceLine line : lines) {
-					
-					X_M_Product_Cost prodCost = new X_M_Product_Cost(Inv.getCtx(), 0, Inv.get_TrxName());
-					
-					prodCost.setAD_Org_ID(Inv.getAD_Org_ID());
-					prodCost.setM_Product_ID(line.getM_Product_ID());
-					prodCost.setC_Invoice_ID(Inv.getC_Invoice_ID());
-					prodCost.setQty(line.getQtyInvoiced());
-					prodCost.setCostPrice(line.getPriceEntered());
-					prodCost.setIsActive(true);
-					prodCost.saveEx();					
-					
-				}
+			
+			if(order != null) {
+			
+				if(order.get_Value("PO_Type").equals("PO from WO")||order.get_Value("PO_Type").equals("Sparepart for Stock")){
+	
+					MInvoiceLine[] lines = Inv.getLines();
+					for(MInvoiceLine line : lines) {
 						
-			}
-			
-			if(order.get_Value("PO_Type").equals("PO Asset (Produksi)")||order.get_Value("PO_Type").equals("PO Asset (Non Produksi)")) {
-					
-				MAsset asset = new MAsset(Inv.getCtx(), Inv.get_ValueAsInt("A_Asset_ID"), Inv.get_TrxName());
-				Timestamp AccDateInv = Inv.getDateAcct();			
-				
-				asset.setAssetActivationDate(Inv.getDateAcct());
-				asset.setQty(Env.ONE);
-				asset.setIsDepreciated(false);
-				asset.setIsFullyDepreciated(false);
-				asset.setA_Asset_Status("AC");
-				asset.saveEx();
-				
-				Timestamp DateAcctSchedule = AccDateInv;
-				
-				for(int i = 0 ; i < asset.getUseLifeMonths() ; i++) {
-				
-					X_A_Depreciation_Exp_Cus depre = new X_A_Depreciation_Exp_Cus(Inv.getCtx(), 0, Inv.get_TrxName());
-					
-					depre.setAD_Org_ID(Inv.getAD_Org_ID());
-					depre.setA_Asset_ID(asset.getA_Asset_ID());
-					depre.setDescription("Depreciation Periode "+(i+1));			
-					
-					Calendar cal = Calendar.getInstance();
-			        cal.setTime(DateAcctSchedule);
-			        cal.add(Calendar.DATE, 30);
-					
-			        DateAcctSchedule = (Timestamp) cal.getTime();
-					depre.setDateAcct(DateAcctSchedule);
-					
-					StringBuilder SQLGetDRAcct = new StringBuilder();
-					SQLGetDRAcct.append("SELECT cvc.Account_ID  ");
-					SQLGetDRAcct.append(" FROM A_Asset_Group_Acct aga  ");
-					SQLGetDRAcct.append(" INNER JOIN A_Asset_Group ag ON ag.A_Asset_Group_ID = aga.A_Asset_Group_ID ");
-					SQLGetDRAcct.append(" INNER JOIN A_Asset aa ON aa.A_Asset_Group_ID = ag.A_Asset_Group_ID ");
-					SQLGetDRAcct.append(" INNER JOIN C_ValidCombination cvc ON cvc.C_ValidCombination_ID = aga.A_Depreciation_Acct ");
-					SQLGetDRAcct.append(" WHERE aa.A_Asset_ID  = "+Inv.get_Value("A_Asset_ID"));
-
-					Integer AccountDR_ID = DB.getSQLValueEx(Inv.get_TrxName(), SQLGetDRAcct.toString());
-
-					depre.setDR_Account_ID(AccountDR_ID);
-					
-					StringBuilder SQLGetCRAcct = new StringBuilder();
-					SQLGetCRAcct.append("SELECT cvc.Account_ID  ");
-					SQLGetCRAcct.append(" FROM A_Asset_Group_Acct aga  ");
-					SQLGetCRAcct.append(" INNER JOIN A_Asset_Group ag ON ag.A_Asset_Group_ID = aga.A_Asset_Group_ID ");
-					SQLGetCRAcct.append(" INNER JOIN A_Asset aa ON aa.A_Asset_Group_ID = ag.A_Asset_Group_ID ");
-					SQLGetCRAcct.append(" INNER JOIN C_ValidCombination cvc ON cvc.C_ValidCombination_ID = aga.A_Accumdepreciation_Acct  ");
-					SQLGetCRAcct.append(" WHERE aa.A_Asset_ID  = "+Inv.get_Value("A_Asset_ID"));
-
-					Integer AccountCR_ID = DB.getSQLValueEx(Inv.get_TrxName(), SQLGetCRAcct.toString());
-					
-					depre.setCR_Account_ID(AccountCR_ID);				
-					
-					BigDecimal AssetValue = (BigDecimal) asset.get_Value("AssetValue");
-					BigDecimal ResidualValue = (BigDecimal) asset.get_Value("ResidualValue");
-					BigDecimal UseLifeMonth = new BigDecimal(asset.getUseLifeMonths());		
-					
-					BigDecimal expense = (AssetValue.subtract(ResidualValue)).divide(UseLifeMonth);
-					depre.setExpense(expense);
-					depre.setIsActive(true);
-					depre.setProcessed(false);
-					depre.saveEx();
-					
+						X_M_Product_Cost prodCost = new X_M_Product_Cost(Inv.getCtx(), 0, Inv.get_TrxName());
+						
+						prodCost.setAD_Org_ID(Inv.getAD_Org_ID());
+						prodCost.setM_Product_ID(line.getM_Product_ID());
+						prodCost.setC_Invoice_ID(Inv.getC_Invoice_ID());
+						prodCost.setQty(line.getQtyInvoiced());
+						prodCost.setCostPrice(line.getPriceEntered());
+						prodCost.setIsActive(true);
+						prodCost.saveEx();					
+						
+					}
+							
 				}
 				
-				
-				
-				
+				if(order.get_Value("PO_Type").equals("PO Asset (Produksi)")||order.get_Value("PO_Type").equals("PO Asset (Non Produksi)")) {
+						
+					MAsset asset = new MAsset(Inv.getCtx(), Inv.get_ValueAsInt("A_Asset_ID"), Inv.get_TrxName());
+					Timestamp AccDateInv = Inv.getDateAcct();			
+					
+					asset.setAssetActivationDate(Inv.getDateAcct());
+					asset.setQty(Env.ONE);
+					asset.setIsDepreciated(false);
+					asset.setIsFullyDepreciated(false);
+					asset.setA_Asset_Status("AC");
+					asset.saveEx();
+					
+					Timestamp DateAcctSchedule = AccDateInv;
+					
+					for(int i = 0 ; i < asset.getUseLifeMonths() ; i++) {
+					
+						X_A_Depreciation_Exp_Cus depre = new X_A_Depreciation_Exp_Cus(Inv.getCtx(), 0, Inv.get_TrxName());
+						
+						depre.setAD_Org_ID(Inv.getAD_Org_ID());
+						depre.setA_Asset_ID(asset.getA_Asset_ID());
+						depre.setDescription("Depreciation Periode "+(i+1));			
+						
+						Calendar cal = Calendar.getInstance();
+				        cal.setTime(DateAcctSchedule);
+				        cal.add(Calendar.DATE, 30);
+						
+				        DateAcctSchedule = (Timestamp) cal.getTime();
+						depre.setDateAcct(DateAcctSchedule);
+						
+						StringBuilder SQLGetDRAcct = new StringBuilder();
+						SQLGetDRAcct.append("SELECT cvc.Account_ID  ");
+						SQLGetDRAcct.append(" FROM A_Asset_Group_Acct aga  ");
+						SQLGetDRAcct.append(" INNER JOIN A_Asset_Group ag ON ag.A_Asset_Group_ID = aga.A_Asset_Group_ID ");
+						SQLGetDRAcct.append(" INNER JOIN A_Asset aa ON aa.A_Asset_Group_ID = ag.A_Asset_Group_ID ");
+						SQLGetDRAcct.append(" INNER JOIN C_ValidCombination cvc ON cvc.C_ValidCombination_ID = aga.A_Depreciation_Acct ");
+						SQLGetDRAcct.append(" WHERE aa.A_Asset_ID  = "+Inv.get_Value("A_Asset_ID"));
+	
+						Integer AccountDR_ID = DB.getSQLValueEx(Inv.get_TrxName(), SQLGetDRAcct.toString());
+	
+						depre.setDR_Account_ID(AccountDR_ID);
+						
+						StringBuilder SQLGetCRAcct = new StringBuilder();
+						SQLGetCRAcct.append("SELECT cvc.Account_ID  ");
+						SQLGetCRAcct.append(" FROM A_Asset_Group_Acct aga  ");
+						SQLGetCRAcct.append(" INNER JOIN A_Asset_Group ag ON ag.A_Asset_Group_ID = aga.A_Asset_Group_ID ");
+						SQLGetCRAcct.append(" INNER JOIN A_Asset aa ON aa.A_Asset_Group_ID = ag.A_Asset_Group_ID ");
+						SQLGetCRAcct.append(" INNER JOIN C_ValidCombination cvc ON cvc.C_ValidCombination_ID = aga.A_Accumdepreciation_Acct  ");
+						SQLGetCRAcct.append(" WHERE aa.A_Asset_ID  = "+Inv.get_Value("A_Asset_ID"));
+	
+						Integer AccountCR_ID = DB.getSQLValueEx(Inv.get_TrxName(), SQLGetCRAcct.toString());
+						
+						depre.setCR_Account_ID(AccountCR_ID);				
+						
+						BigDecimal AssetValue = (BigDecimal) asset.get_Value("AssetValue");
+						BigDecimal ResidualValue = (BigDecimal) asset.get_Value("ResidualValue");
+						BigDecimal UseLifeMonth = new BigDecimal(asset.getUseLifeMonths());		
+						
+						BigDecimal expense = (AssetValue.subtract(ResidualValue)).divide(UseLifeMonth);
+						depre.setExpense(expense);
+						depre.setIsActive(true);
+						depre.setProcessed(false);
+						depre.saveEx();
+						
+					}
+					
+					
+					
+					
+				}
+					
 			}
-				
 		}
-		
 		
 		return rslt;
 		

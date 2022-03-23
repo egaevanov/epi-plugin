@@ -16,6 +16,7 @@ import org.epi.ws.model.API_Model_GoodReceiptLines;
 import org.epi.ws.model.API_Model_MasterAsset;
 import org.epi.ws.model.API_Model_MasterCustomer;
 import org.epi.ws.model.API_Model_MasterLocation;
+import org.epi.ws.model.API_Model_MasterVendor;
 import org.epi.ws.model.API_Model_POHeader;
 import org.epi.ws.model.API_Model_POLines;
 import org.epi.ws.model.API_Model_SOHeader;
@@ -30,7 +31,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class WSRoutingPostDataFromWise extends SvrProcess{
-	
 	
 	private int p_AD_Client_ID = 0;
 	private int p_AD_Org_ID = 0;
@@ -49,10 +49,9 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 	private final int DATA_TYPE_TIMESHEET = 8;
 	private final int DATA_TYPE_MASTER_ASSET = 9;
 	private final int DATA_TYPE_MASTER_CUSTOMER = 10;
+	//private final int DATA_TYPE_MASTER_EMPLOYEE = 11;
+	private final int DATA_TYPE_MASTER_VENDOR = 12;
 	private final int DATA_TYPE_MASTER_LOCATION = 13;
-
-
-	
 
 	public static CLogger log = CLogger.getCLogger(PO.class);
 
@@ -146,10 +145,10 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			API_Model_GoodIssueLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_GoodIssueLines[].class);
 			
 			
-			HashMap<String, Integer> prod = WSExecuteGoodIssue.CheckProductData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName());
-			Integer A_Asset_ID = WSExecuteGoodIssue.CheckAssetData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
+//			HashMap<String, Integer> prod = WSExecuteGoodIssue.CheckProductData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName());
+//			Integer A_Asset_ID = WSExecuteGoodIssue.CheckAssetData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
 				
-			rs = WSExecuteGoodIssue.CreateGoodIssue(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName(),A_Asset_ID,prod);
+			rs = WSExecuteGoodIssue.CreateGoodIssue(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName());
 			
 			if(rs <= 0) {
 				
@@ -376,6 +375,32 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			}else {
 				
 				result ="Master Customer has been successfully posted on iDempiere ERP System";
+				
+			}
+			
+			
+		}else if(p_DataType == DATA_TYPE_MASTER_VENDOR) {
+			
+			String JSonString = p_JSON;
+			Integer rs = 0;
+
+			Gson gson = new Gson();
+			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
+			API_Model_MasterVendor dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_MasterVendor.class);
+			
+					
+
+
+			rs = WSExecuteMasterVendor.CreateVendor(p_AD_Client_ID, p_AD_Org_ID, dataHeader,getCtx(), get_TrxName());
+			
+			if(rs <= 0) {
+				
+				result = "ERROR";
+				rollback();
+				return "Process Gagal";
+			}else {
+				
+				result ="Master Vendor has been successfully posted on iDempiere ERP System";
 				
 			}
 			

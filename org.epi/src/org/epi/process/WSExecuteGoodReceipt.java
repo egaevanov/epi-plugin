@@ -100,7 +100,7 @@ public class WSExecuteGoodReceipt {
 					
 					MInOutLine MRLine = new MInOutLine(ctx, 0, trxName);
 					MRLine.setAD_Org_ID(AD_Org_ID);
-					MRLine.setLine(noLine);
+					MRLine.setLine(detail.po_line);
 					MRLine.setC_OrderLine_ID(detail.po_line);
 					MRLine.setM_InOut_ID(GReceipt.getM_InOut_ID());
 					
