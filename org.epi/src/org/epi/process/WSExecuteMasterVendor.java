@@ -20,7 +20,7 @@ public class WSExecuteMasterVendor {
 		
 		SQLCheckBP.append("SELECT C_BPartner_ID ");
 		SQLCheckBP.append(" FROM C_BPartner");
-		SQLCheckBP.append(" WHERE Value = '"+data.bp_value+"'");
+		SQLCheckBP.append(" WHERE Value = '"+data.vendor_pk_id+"'");
 
 		
 		Integer C_BPartner_ID = DB.getSQLValueEx(trxName, SQLCheckBP.toString());
@@ -33,13 +33,16 @@ public class WSExecuteMasterVendor {
 			bp = new MBPartner(ctx, C_BPartner_ID, trxName);
 				
 			bp.setClientOrg(AD_Client_ID, AD_Org_ID);
-			bp.setIsVendor(false);
-			bp.setIsCustomer(true);
-			bp.setC_BP_Group_ID(data.bp_group);
-			bp.setValue(data.bp_value);
-			bp.setName(data.bp_name);
-			bp.setName2(data.bp_name2);
-			bp.setC_PaymentTerm_ID(data.bp_term_id);
+			bp.setIsVendor(true);
+			bp.setIsCustomer(false);
+			bp.setC_BP_Group_ID(1000007);
+			bp.setValue(data.vendor_pk_id);
+			bp.setName(data.vendor_name);
+			bp.setName2(data.vendor_id);
+			bp.setPO_PaymentTerm_ID(1000021);
+			bp.setC_PaymentTerm_ID(1000021);
+			bp.setPO_PriceList_ID(1000016);
+			bp.setPaymentRulePO("P");
 			bp.saveEx();
 				
 			if(bp!= null){
@@ -56,10 +59,10 @@ public class WSExecuteMasterVendor {
 					
 				MLocation location = new MLocation(ctx, C_Location_ID, trxName);
 				location.setAD_Org_ID(AD_Org_ID);
-				location.setAddress1(data.bp_address);
+				location.setAddress1(data.address);
 				location.setC_Country_ID(209);
-				location.setPostal(data.bp_postal);
-				location.setCity(data.bp_city);
+//				location.setPostal(data.bp_postal);
+//				location.setCity(data.bp_city);
 				location.saveEx();
 					
 					
@@ -79,8 +82,8 @@ public class WSExecuteMasterVendor {
 					BpLoc.setC_BPartner_ID(bp.getC_BPartner_ID());
 					BpLoc.setC_Location_ID(location.getC_Location_ID());
 					BpLoc.setName(location.getAddress1());
-					BpLoc.setPhone(data.bp_phone);
-					BpLoc.setPhone2(data.bp_mobile);
+					BpLoc.setPhone(data.phone);
+					BpLoc.setPhone2(data.mobile);
 					//BpLoc.setEmail(data.bp_email);
 					//BpLoc.setPic(data.bp_pic);
 					BpLoc.setIsShipTo(true);

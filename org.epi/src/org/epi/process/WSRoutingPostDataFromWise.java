@@ -10,9 +10,10 @@ import org.compiere.util.CLogger;
 import org.epi.ws.model.API_Model_AssetDisposal;
 import org.epi.ws.model.API_Model_BAST;
 import org.epi.ws.model.API_Model_GoodIssue;
-import org.epi.ws.model.API_Model_GoodIssueLines;
 import org.epi.ws.model.API_Model_GoodReceipt;
 import org.epi.ws.model.API_Model_GoodReceiptLines;
+import org.epi.ws.model.API_Model_InvoiceVendor;
+import org.epi.ws.model.API_Model_InvoiceVendorLines;
 import org.epi.ws.model.API_Model_MasterAsset;
 import org.epi.ws.model.API_Model_MasterCustomer;
 import org.epi.ws.model.API_Model_MasterLocation;
@@ -40,7 +41,7 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 	private String p_JSON = "";
 	
 	private final int DATA_TYPE_DISPOSAL_ASSET = 1;
-	private final int DATA_TYPE_GOOD_ISSUE = 2;
+//	private final int DATA_TYPE_GOOD_ISSUE = 2;
 	private final int DATA_TYPE_STOCK_OPNAME = 3;
 	private final int DATA_TYPE_GOOD_RECEIPT = 4;
 	private final int DATA_TYPE_PURCHASE_ORDER = 5;
@@ -49,9 +50,13 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 	private final int DATA_TYPE_TIMESHEET = 8;
 	private final int DATA_TYPE_MASTER_ASSET = 9;
 	private final int DATA_TYPE_MASTER_CUSTOMER = 10;
-	//private final int DATA_TYPE_MASTER_EMPLOYEE = 11;
-	private final int DATA_TYPE_MASTER_VENDOR = 12;
+//	private final int DATA_TYPE_MASTER_EMPLOYEE = 11;
+//	private final int DATA_TYPE_MASTER_VENDOR = 12;
 	private final int DATA_TYPE_MASTER_LOCATION = 13;
+	
+	private final int DATA_TYPE_MASTER_VENDOR = 20;
+	private final int DATA_TYPE_INVOICE_VENDOR = 21;
+	private final int DATA_TYPE_GOOD_ISSUE = 22;
 
 	public static CLogger log = CLogger.getCLogger(PO.class);
 
@@ -131,37 +136,6 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 				
 				result = rs.toString();
 			}
-			
-		}else if(p_DataType == DATA_TYPE_GOOD_ISSUE) {
-			
-			String JSonString = p_JSON;
-			Integer rs = 0;
-
-			Gson gson = new Gson();
-			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
-			API_Model_GoodIssue dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_GoodIssue.class);
-			
-			JsonArray jsonDetails = gson.fromJson(dataHeader.details.toString(), JsonArray.class);
-			API_Model_GoodIssueLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_GoodIssueLines[].class);
-			
-			
-//			HashMap<String, Integer> prod = WSExecuteGoodIssue.CheckProductData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName());
-//			Integer A_Asset_ID = WSExecuteGoodIssue.CheckAssetData(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
-				
-			rs = WSExecuteGoodIssue.CreateGoodIssue(p_AD_Client_ID, p_AD_Org_ID, dataHeader, dataDetails, getCtx(), get_TrxName());
-			
-			if(rs <= 0) {
-				
-				result = "ERROR";
-				rollback();
-				return "Process Gagal";
-			}else {
-				
-				result ="Goods Issue transaction has been successfully posted on iDempiere ERP System";
-				
-			}
-			
-			
 			
 		}else if(p_DataType == DATA_TYPE_STOCK_OPNAME) {
 			
@@ -362,9 +336,6 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
 			API_Model_MasterCustomer dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_MasterCustomer.class);
 			
-					
-
-
 			rs = WSExecuteMasterCustomer.CreateCustomer(p_AD_Client_ID, p_AD_Org_ID, dataHeader,getCtx(), get_TrxName());
 			
 			if(rs <= 0) {
@@ -375,32 +346,6 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			}else {
 				
 				result ="Master Customer has been successfully posted on iDempiere ERP System";
-				
-			}
-			
-			
-		}else if(p_DataType == DATA_TYPE_MASTER_VENDOR) {
-			
-			String JSonString = p_JSON;
-			Integer rs = 0;
-
-			Gson gson = new Gson();
-			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
-			API_Model_MasterVendor dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_MasterVendor.class);
-			
-					
-
-
-			rs = WSExecuteMasterVendor.CreateVendor(p_AD_Client_ID, p_AD_Org_ID, dataHeader,getCtx(), get_TrxName());
-			
-			if(rs <= 0) {
-				
-				result = "ERROR";
-				rollback();
-				return "Process Gagal";
-			}else {
-				
-				result ="Master Vendor has been successfully posted on iDempiere ERP System";
 				
 			}
 			
@@ -431,7 +376,84 @@ public class WSRoutingPostDataFromWise extends SvrProcess{
 			}
 			
 			
+		}else if(p_DataType == DATA_TYPE_MASTER_VENDOR) {
+			
+			String JSonString = p_JSON;
+			Integer rs = 0;
+
+			Gson gson = new Gson();
+			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
+			API_Model_MasterVendor dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_MasterVendor.class);
+			
+			rs = WSExecuteMasterVendor.CreateVendor(p_AD_Client_ID, p_AD_Org_ID, dataHeader,getCtx(), get_TrxName());
+			
+			if(rs <= 0) {
+				
+				result = "ERROR";
+				rollback();
+				return "Process Gagal";
+			}else {
+				
+				result ="Master Vendor has been successfully posted on iDempiere ERP System";
+				
+			}
+			
+			
+		}else if(p_DataType == DATA_TYPE_INVOICE_VENDOR) {
+			
+			String JSonString = p_JSON;
+			Integer rs = 0;
+
+			Gson gson = new Gson();
+			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
+			API_Model_InvoiceVendor dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_InvoiceVendor.class);
+			
+			JsonArray jsonDetail = gson.fromJson(dataHeader.detail.toString(), JsonArray.class);		
+			API_Model_InvoiceVendorLines[] dataDetails= gson.fromJson(jsonDetail.toString(), API_Model_InvoiceVendorLines[].class);
+
+			rs = WSExecuteInvoiceVendor.CreateInvoiceVendor(p_AD_Client_ID, p_AD_Org_ID, dataHeader,dataDetails,getCtx(), get_TrxName());
+			
+			if(rs <= 0) {
+				
+				result = "ERROR";
+				rollback();
+				return "Process Gagal";
+			}else {
+				
+				result ="Invoice Vendor has been successfully posted on iDempiere ERP System";
+				
+			}
+			
+			
+		}else if(p_DataType == DATA_TYPE_GOOD_ISSUE) {
+			
+			String JSonString = p_JSON;
+			Integer rs = 0;
+
+			Gson gson = new Gson();
+			JsonObject jsonHeader = gson.fromJson(JSonString, JsonObject.class);
+			API_Model_GoodIssue dataHeader = gson.fromJson(jsonHeader.toString(), API_Model_GoodIssue.class);
+			
+//			JsonArray jsonDetails = gson.fromJson(dataHeader.details.toString(), JsonArray.class);
+//			API_Model_GoodIssueLines[] dataDetails= gson.fromJson(jsonDetails.toString(), API_Model_GoodIssueLines[].class);
+							
+			rs = WSExecuteGoodIssue.CreateGoodIssueNew(p_AD_Client_ID, p_AD_Org_ID, dataHeader, getCtx(), get_TrxName());
+			
+			if(rs <= 0) {
+				
+				result = "ERROR";
+				rollback();
+				return "Process Gagal";
+			}else {
+				
+				result ="Goods Issue transaction has been successfully posted on iDempiere ERP System";
+				
+			}
+			
+			
+			
 		}
+		
 		
 		
 		return result;
